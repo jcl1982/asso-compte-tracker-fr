@@ -3,6 +3,14 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from './useAuth';
 import { useToast } from './use-toast';
 
+interface CategorizationRule {
+  id: string;
+  category_id: string;
+  keywords: string[];
+  transaction_type: 'income' | 'expense';
+  priority: number;
+}
+
 export interface Account {
   id: string;
   name: string;
@@ -152,16 +160,59 @@ export function useFinance() {
     }
   };
 
+  // Fonction pour auto-catégoriser une transaction
+  const autoCategorizTransaction = async (description: string, type: 'income' | 'expense'): Promise<string | undefined> => {
+    if (!description) return undefined;
+
+    try {
+      const { data: rules, error } = await supabase
+        .from('categorization_rules')
+        .select('*')
+        .eq('transaction_type', type)
+        .order('priority', { ascending: false });
+
+      if (error) throw error;
+
+      const lowerDescription = description.toLowerCase();
+      
+      for (const rule of rules || []) {
+        const hasMatch = rule.keywords.some(keyword => 
+          lowerDescription.includes(keyword.toLowerCase())
+        );
+        
+        if (hasMatch) {
+          return rule.category_id;
+        }
+      }
+    } catch (error) {
+      console.error('Erreur lors de la catégorisation automatique:', error);
+    }
+
+    return undefined;
+  };
+
   // Créer une transaction
   const createTransaction = async (transactionData: Omit<Transaction, 'id' | 'user_id' | 'created_at' | 'updated_at' | 'accounts' | 'categories'>) => {
     if (!user) return;
 
     try {
+      // Auto-catégorisation si aucune catégorie n'est spécifiée
+      let finalTransactionData = { ...transactionData };
+      if (!finalTransactionData.category_id && finalTransactionData.description) {
+        const suggestedCategoryId = await autoCategorizTransaction(
+          finalTransactionData.description,
+          finalTransactionData.type
+        );
+        if (suggestedCategoryId) {
+          finalTransactionData.category_id = suggestedCategoryId;
+        }
+      }
+
       const { data, error } = await supabase
         .from('transactions')
         .insert([
           {
-            ...transactionData,
+            ...finalTransactionData,
             user_id: user.id
           }
         ])
@@ -251,6 +302,86 @@ export function useFinance() {
     }, {} as Record<string, number>);
   };
 
+  // Appliquer la catégorisation automatique aux transactions existantes
+  const applyCategorization = async (transactionIds?: string[]) => {
+    if (!user) return;
+
+    try {
+      // Récupérer les règles de catégorisation
+      const { data: rules, error: rulesError } = await supabase
+        .from('categorization_rules')
+        .select('*')
+        .order('priority', { ascending: false });
+
+      if (rulesError) throw rulesError;
+
+      // Récupérer les transactions non catégorisées ou spécifiques
+      let query = supabase
+        .from('transactions')
+        .select('id, description, type, category_id');
+
+      if (transactionIds && transactionIds.length > 0) {
+        query = query.in('id', transactionIds);
+      } else {
+        query = query.is('category_id', null);
+      }
+
+      const { data: transactions, error: transactionsError } = await query;
+
+      if (transactionsError) throw transactionsError;
+
+      let updatedCount = 0;
+
+      // Appliquer les règles aux transactions
+      for (const transaction of transactions || []) {
+        if (!transaction.description) continue;
+
+        const applicableRules = rules?.filter(rule => rule.transaction_type === transaction.type) || [];
+        const lowerDescription = transaction.description.toLowerCase();
+        
+        for (const rule of applicableRules) {
+          const hasMatch = rule.keywords.some(keyword => 
+            lowerDescription.includes(keyword.toLowerCase())
+          );
+          
+          if (hasMatch) {
+            const { error: updateError } = await supabase
+              .from('transactions')
+              .update({ category_id: rule.category_id })
+              .eq('id', transaction.id);
+
+            if (!updateError) {
+              updatedCount++;
+            }
+            break; // Utiliser la première règle qui correspond
+          }
+        }
+      }
+
+      if (updatedCount > 0) {
+        toast({
+          title: "Succès",
+          description: `${updatedCount} transaction(s) catégorisée(s) automatiquement`
+        });
+        fetchTransactions();
+      } else {
+        toast({
+          title: "Information",
+          description: "Aucune transaction à catégoriser automatiquement"
+        });
+      }
+
+      return updatedCount;
+    } catch (error: any) {
+      toast({
+        title: "Erreur",
+        description: error.message || "Impossible d'appliquer la catégorisation automatique",
+        variant: "destructive"
+      });
+      return 0;
+    }
+  };
+
   // Charger les données au montage
   useEffect(() => {
     if (user) {
@@ -272,6 +403,7 @@ export function useFinance() {
     fetchAccounts,
     fetchTransactions,
     getTotalBalance,
-    getBalanceByType
+    getBalanceByType,
+    applyCategorization
   };
 }

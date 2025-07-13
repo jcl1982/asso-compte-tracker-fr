@@ -68,6 +68,44 @@ export type Database = {
         }
         Relationships: []
       }
+      categorization_rules: {
+        Row: {
+          category_id: string
+          created_at: string
+          id: string
+          keywords: string[]
+          priority: number
+          transaction_type: string
+          updated_at: string
+        }
+        Insert: {
+          category_id: string
+          created_at?: string
+          id?: string
+          keywords: string[]
+          priority?: number
+          transaction_type: string
+          updated_at?: string
+        }
+        Update: {
+          category_id?: string
+          created_at?: string
+          id?: string
+          keywords?: string[]
+          priority?: number
+          transaction_type?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "categorization_rules_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "categories"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           created_at: string

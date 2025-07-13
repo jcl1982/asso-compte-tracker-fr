@@ -8,12 +8,13 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, Di
 import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Trash2, Plus, TrendingUp, TrendingDown, Calendar, Filter } from 'lucide-react';
+import { Trash2, Plus, TrendingUp, TrendingDown, Calendar, Zap } from 'lucide-react';
 import { useFinance, Transaction } from '@/hooks/useFinance';
 import { BankStatementImport } from './BankStatementImport';
+import { AutoCategorizationRules } from './AutoCategorizationRules';
 
 export function TransactionsManagement() {
-  const { accounts, transactions, categories, createTransaction, deleteTransaction, loading } = useFinance();
+  const { accounts, transactions, categories, createTransaction, deleteTransaction, loading, applyCategorization } = useFinance();
   const [showCreateDialog, setShowCreateDialog] = useState(false);
   const [newTransaction, setNewTransaction] = useState({
     account_id: '',
@@ -234,10 +235,21 @@ export function TransactionsManagement() {
       ) : (
         <Card>
           <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Calendar className="h-5 w-5" />
-              Historique des transactions
-            </CardTitle>
+            <div className="flex items-center justify-between">
+              <CardTitle className="flex items-center gap-2">
+                <Calendar className="h-5 w-5" />
+                Historique des transactions
+              </CardTitle>
+              <Button 
+                variant="outline" 
+                size="sm"
+                onClick={() => applyCategorization()}
+                disabled={loading}
+              >
+                <Zap className="h-4 w-4 mr-2" />
+                Auto-catégoriser
+              </Button>
+            </div>
           </CardHeader>
           <CardContent>
             <Table>
@@ -292,6 +304,14 @@ export function TransactionsManagement() {
           </CardContent>
         </Card>
       )}
+      
+      {/* Configuration des règles de catégorisation automatique */}
+      <AutoCategorizationRules 
+        categories={categories}
+        onRulesUpdate={() => {
+          // Optionnel: rafraîchir les données si nécessaire
+        }}
+      />
     </div>
   );
 }
