@@ -8,7 +8,7 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, Di
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
-import { Upload, FileSpreadsheet, CheckCircle, AlertCircle, TrendingUp, TrendingDown } from 'lucide-react';
+import { Upload, FileSpreadsheet, CheckCircle, AlertCircle, TrendingUp, TrendingDown, Download } from 'lucide-react';
 import { useFinance, Account } from '@/hooks/useFinance';
 import { useToast } from '@/hooks/use-toast';
 import * as XLSX from 'xlsx';
@@ -193,6 +193,61 @@ export function BankStatementImport() {
     return type === 'income' ? 'text-green-600' : 'text-red-600';
   };
 
+  const downloadTemplate = () => {
+    // Créer un workbook avec des données d'exemple
+    const templateData = [
+      {
+        'Date': '2024-01-15',
+        'Description': 'ACHAT CB MONOPRIX PARIS',
+        'Montant': -45.67
+      },
+      {
+        'Date': '2024-01-16',
+        'Description': 'VIREMENT SALAIRE ENTREPRISE ABC',
+        'Montant': 2500.00
+      },
+      {
+        'Date': '2024-01-17',
+        'Description': 'PRELEVEMENT EDF ENERGIE',
+        'Montant': -89.34
+      },
+      {
+        'Date': '2024-01-18',
+        'Description': 'ACHAT CB RESTAURANT LE BISTROT',
+        'Montant': -35.20
+      },
+      {
+        'Date': '2024-01-20',
+        'Description': 'REMBOURSEMENT SECU',
+        'Montant': 125.45
+      }
+    ];
+
+    // Créer le workbook
+    const workbook = XLSX.utils.book_new();
+    const worksheet = XLSX.utils.json_to_sheet(templateData);
+    
+    // Ajouter des styles aux en-têtes
+    const range = XLSX.utils.decode_range(worksheet['!ref'] || 'A1');
+    
+    // Définir la largeur des colonnes
+    worksheet['!cols'] = [
+      { width: 12 }, // Date
+      { width: 40 }, // Description
+      { width: 15 }  // Montant
+    ];
+
+    XLSX.utils.book_append_sheet(workbook, worksheet, 'Modèle Relevé Bancaire');
+    
+    // Télécharger le fichier
+    XLSX.writeFile(workbook, 'modele-releve-bancaire.xlsx');
+    
+    toast({
+      title: "Modèle téléchargé",
+      description: "Le fichier modèle a été téléchargé avec succès"
+    });
+  };
+
   return (
     <Dialog open={showImportDialog} onOpenChange={setShowImportDialog}>
       <DialogTrigger asChild>
@@ -214,6 +269,29 @@ export function BankStatementImport() {
         </DialogHeader>
 
         <div className="space-y-6">
+          {/* Téléchargement du modèle */}
+          <Card className="bg-muted/50">
+            <CardContent className="p-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h4 className="font-medium">Besoin d'un modèle ?</h4>
+                  <p className="text-sm text-muted-foreground">
+                    Téléchargez un fichier Excel modèle avec le format requis
+                  </p>
+                </div>
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  onClick={downloadTemplate}
+                  className="gap-2"
+                >
+                  <Download className="h-4 w-4" />
+                  Télécharger le modèle
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+
           {/* Sélection du fichier */}
           <div className="space-y-2">
             <Label htmlFor="file-upload">Fichier Excel</Label>
