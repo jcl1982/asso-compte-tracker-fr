@@ -263,6 +263,32 @@ export function useFinance() {
     }
   };
 
+  // Modifier une transaction
+  const updateTransaction = async (transactionId: string, updates: Partial<Omit<Transaction, 'id' | 'user_id' | 'created_at' | 'updated_at' | 'accounts' | 'categories'>>) => {
+    try {
+      const { error } = await supabase
+        .from('transactions')
+        .update(updates)
+        .eq('id', transactionId);
+
+      if (error) throw error;
+
+      toast({
+        title: "Succès",
+        description: "Transaction modifiée avec succès"
+      });
+
+      fetchTransactions();
+      fetchAccounts(); // Mettre à jour les soldes
+    } catch (error: any) {
+      toast({
+        title: "Erreur",
+        description: error.message || "Impossible de modifier la transaction",
+        variant: "destructive"
+      });
+    }
+  };
+
   // Supprimer une transaction
   const deleteTransaction = async (transactionId: string) => {
     try {
@@ -398,6 +424,7 @@ export function useFinance() {
     loading,
     createAccount,
     createTransaction,
+    updateTransaction,
     deleteAccount,
     deleteTransaction,
     fetchAccounts,

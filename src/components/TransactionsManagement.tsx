@@ -14,7 +14,7 @@ import { BankStatementImport } from './BankStatementImport';
 import { AutoCategorizationRules } from './AutoCategorizationRules';
 
 export function TransactionsManagement() {
-  const { accounts, transactions, categories, createTransaction, deleteTransaction, loading, applyCategorization } = useFinance();
+  const { accounts, transactions, categories, createTransaction, updateTransaction, deleteTransaction, loading, applyCategorization } = useFinance();
   const [showCreateDialog, setShowCreateDialog] = useState(false);
   const [newTransaction, setNewTransaction] = useState({
     account_id: '',
@@ -59,6 +59,17 @@ export function TransactionsManagement() {
   };
 
   const filteredCategories = categories.filter(cat => cat.type === newTransaction.type);
+
+  const handleCategoryChange = async (transactionId: string, categoryId: string, transactionType: Transaction['type']) => {
+    const validCategories = categories.filter(cat => cat.type === transactionType);
+    const selectedCategory = validCategories.find(cat => cat.id === categoryId);
+    
+    if (!selectedCategory && categoryId !== '') return;
+    
+    await updateTransaction(transactionId, { 
+      category_id: categoryId === '' ? null : categoryId 
+    });
+  };
 
   return (
     <div className="space-y-6">
@@ -280,7 +291,28 @@ export function TransactionsManagement() {
                         )}
                       </Badge>
                     </TableCell>
-                    <TableCell>{transaction.categories?.name || '-'}</TableCell>
+                    <TableCell>
+                      <Select
+                        value={transaction.category_id || ''}
+                        onValueChange={(value) => handleCategoryChange(transaction.id, value, transaction.type)}
+                      >
+                        <SelectTrigger className="w-full max-w-[200px]">
+                          <SelectValue placeholder="Sélectionner une catégorie" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="">
+                            <span className="text-muted-foreground">Aucune catégorie</span>
+                          </SelectItem>
+                          {categories
+                            .filter(cat => cat.type === transaction.type)
+                            .map((category) => (
+                              <SelectItem key={category.id} value={category.id}>
+                                {category.name}
+                              </SelectItem>
+                            ))}
+                        </SelectContent>
+                      </Select>
+                    </TableCell>
                     <TableCell className="max-w-xs truncate">
                       {transaction.description || '-'}
                     </TableCell>
