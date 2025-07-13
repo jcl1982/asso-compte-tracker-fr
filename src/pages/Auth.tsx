@@ -14,10 +14,11 @@ export default function Auth() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [displayName, setDisplayName] = useState('');
+  const [resetEmail, setResetEmail] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   
-  const { signIn, signUp, user } = useAuth();
+  const { signIn, signUp, resetPassword, user } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
 
@@ -70,6 +71,26 @@ export default function Auth() {
     setLoading(false);
   };
 
+  const handleResetPassword = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
+    setError('');
+
+    const { error } = await resetPassword(resetEmail);
+    
+    if (error) {
+      setError(error.message || 'Erreur lors de l\'envoi de l\'email');
+    } else {
+      toast({
+        title: "Email envoyé",
+        description: "Vérifiez votre boîte mail pour réinitialiser votre mot de passe.",
+      });
+      setResetEmail('');
+    }
+    
+    setLoading(false);
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-background to-muted flex items-center justify-center p-4">
       <div className="w-full max-w-md">
@@ -86,9 +107,10 @@ export default function Auth() {
         <Card>
           <Tabs defaultValue="signin" className="w-full">
             <CardHeader>
-              <TabsList className="grid w-full grid-cols-2">
+              <TabsList className="grid w-full grid-cols-3">
                 <TabsTrigger value="signin">Connexion</TabsTrigger>
                 <TabsTrigger value="signup">Inscription</TabsTrigger>
+                <TabsTrigger value="reset">Mot de passe</TabsTrigger>
               </TabsList>
             </CardHeader>
 
@@ -139,6 +161,20 @@ export default function Auth() {
                       'Se connecter'
                     )}
                   </Button>
+                  
+                  <div className="text-center text-sm">
+                    <Button 
+                      variant="link" 
+                      className="p-0 h-auto text-muted-foreground hover:text-foreground"
+                      onClick={() => {
+                        const tabs = document.querySelector('[role="tablist"]');
+                        const resetTab = tabs?.querySelector('[value="reset"]') as HTMLElement;
+                        resetTab?.click();
+                      }}
+                    >
+                      Mot de passe oublié ?
+                    </Button>
+                  </div>
                 </form>
               </TabsContent>
 
@@ -194,6 +230,51 @@ export default function Auth() {
                       'S\'inscrire'
                     )}
                   </Button>
+                </form>
+              </TabsContent>
+
+              <TabsContent value="reset" className="space-y-4">
+                <CardDescription className="text-center">
+                  Réinitialisez votre mot de passe
+                </CardDescription>
+                
+                <form onSubmit={handleResetPassword} className="space-y-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="reset-email">Email</Label>
+                    <Input
+                      id="reset-email"
+                      type="email"
+                      placeholder="votre@email.com"
+                      value={resetEmail}
+                      onChange={(e) => setResetEmail(e.target.value)}
+                      required
+                    />
+                  </div>
+                  
+                  <Button type="submit" className="w-full" disabled={loading}>
+                    {loading ? (
+                      <>
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                        Envoi en cours...
+                      </>
+                    ) : (
+                      'Envoyer le lien de réinitialisation'
+                    )}
+                  </Button>
+                  
+                  <div className="text-center text-sm">
+                    <Button 
+                      variant="link" 
+                      className="p-0 h-auto text-muted-foreground hover:text-foreground"
+                      onClick={() => {
+                        const tabs = document.querySelector('[role="tablist"]');
+                        const signinTab = tabs?.querySelector('[value="signin"]') as HTMLElement;
+                        signinTab?.click();
+                      }}
+                    >
+                      Retour à la connexion
+                    </Button>
+                  </div>
                 </form>
               </TabsContent>
             </CardContent>
