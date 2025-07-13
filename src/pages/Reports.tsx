@@ -29,10 +29,6 @@ export default function Reports() {
   const { accounts, transactions, categories, getTotalBalance, getBalanceByType } = useFinance();
   const [selectedPeriod, setSelectedPeriod] = useState('30'); // derniers 30 jours par défaut
 
-  if (!user) {
-    return null;
-  }
-
   // Filtrer les transactions par période
   const filteredTransactions = useMemo(() => {
     const daysBack = parseInt(selectedPeriod);
@@ -142,6 +138,10 @@ export default function Reports() {
   };
 
   const COLORS = ['#8884d8', '#82ca9d', '#ffc658', '#ff7300', '#8dd1e1', '#d084d0', '#ffb347', '#87ceeb'];
+
+  if (!user) {
+    return null;
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-background to-muted">
