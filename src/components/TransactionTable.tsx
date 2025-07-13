@@ -41,10 +41,10 @@ export function TransactionTable({
     const validCategories = categories.filter(cat => cat.type === transactionType);
     const selectedCategory = validCategories.find(cat => cat.id === categoryId);
     
-    if (!selectedCategory && categoryId !== '') return;
+    if (!selectedCategory && categoryId !== 'none') return;
     
     await onUpdateTransaction(transactionId, { 
-      category_id: categoryId === '' ? null : categoryId 
+      category_id: categoryId === 'none' ? null : categoryId 
     });
   };
 
@@ -98,14 +98,14 @@ export function TransactionTable({
                 </TableCell>
                 <TableCell>
                   <Select
-                    value={transaction.category_id || ''}
+                    value={transaction.category_id || 'none'}
                     onValueChange={(value) => handleCategoryChange(transaction.id, value, transaction.type)}
                   >
                     <SelectTrigger className="w-full max-w-[200px]">
                       <SelectValue placeholder="Sélectionner une catégorie" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="">
+                      <SelectItem value="none">
                         <span className="text-muted-foreground">Aucune catégorie</span>
                       </SelectItem>
                       {categories
