@@ -197,8 +197,11 @@ export default function Dashboard() {
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <Button className="w-full" disabled>
-                Bientôt disponible
+              <Button 
+                className="w-full"
+                onClick={() => navigate('/reports')}
+              >
+                Consulter les rapports
               </Button>
             </CardContent>
           </Card>
@@ -222,9 +225,9 @@ export default function Dashboard() {
                 <BarChart3 className="h-4 w-4 mr-2" />
                 Nouvelle transaction
               </Button>
-              <Button variant="outline" disabled>
+              <Button variant="outline" onClick={() => navigate('/reports')}>
                 <FileText className="h-4 w-4 mr-2" />
-                Exporter rapport
+                Consulter rapports
               </Button>
             </div>
           </CardContent>
