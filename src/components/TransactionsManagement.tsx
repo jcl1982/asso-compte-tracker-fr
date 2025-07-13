@@ -10,6 +10,7 @@ import { Badge } from '@/components/ui/badge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Trash2, Plus, TrendingUp, TrendingDown, Calendar, Filter } from 'lucide-react';
 import { useFinance, Transaction } from '@/hooks/useFinance';
+import { BankStatementImport } from './BankStatementImport';
 
 export function TransactionsManagement() {
   const { accounts, transactions, categories, createTransaction, deleteTransaction, loading } = useFinance();
@@ -68,14 +69,16 @@ export function TransactionsManagement() {
           </p>
         </div>
         
-        <Dialog open={showCreateDialog} onOpenChange={setShowCreateDialog}>
-          <DialogTrigger asChild>
-            <Button>
-              <Plus className="h-4 w-4 mr-2" />
-              Nouvelle Transaction
-            </Button>
-          </DialogTrigger>
-          <DialogContent className="max-w-md">
+        <div className="flex gap-2">
+          <BankStatementImport />
+          <Dialog open={showCreateDialog} onOpenChange={setShowCreateDialog}>
+            <DialogTrigger asChild>
+              <Button>
+                <Plus className="h-4 w-4 mr-2" />
+                Nouvelle Transaction
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="max-w-md">
             <DialogHeader>
               <DialogTitle>Créer une nouvelle transaction</DialogTitle>
               <DialogDescription>
@@ -194,8 +197,9 @@ export function TransactionsManagement() {
                 </Button>
               </div>
             </form>
-          </DialogContent>
-        </Dialog>
+            </DialogContent>
+          </Dialog>
+        </div>
       </div>
 
       {loading ? (
