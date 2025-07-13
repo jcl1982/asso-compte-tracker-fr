@@ -1,74 +1,39 @@
-import React, { useState } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import React from 'react';
+import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { Textarea } from '@/components/ui/textarea';
-import { Badge } from '@/components/ui/badge';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Trash2, Plus, TrendingUp, TrendingDown, Calendar, Zap } from 'lucide-react';
-import { useFinance, Transaction } from '@/hooks/useFinance';
+import { Calendar, Plus } from 'lucide-react';
+import { useFinance } from '@/hooks/useFinance';
 import { BankStatementImport } from './BankStatementImport';
 import { AutoCategorizationRules } from './AutoCategorizationRules';
+import { TransactionForm } from './TransactionForm';
+import { TransactionTable } from './TransactionTable';
 
 export function TransactionsManagement() {
-  const { accounts, transactions, categories, createTransaction, updateTransaction, deleteTransaction, loading, applyCategorization } = useFinance();
-  const [showCreateDialog, setShowCreateDialog] = useState(false);
-  const [newTransaction, setNewTransaction] = useState({
-    account_id: '',
-    amount: '',
-    type: 'expense' as Transaction['type'],
-    category_id: '',
-    description: '',
-    transaction_date: new Date().toISOString().split('T')[0]
-  });
+  const { 
+    accounts, 
+    transactions, 
+    categories, 
+    createTransaction, 
+    updateTransaction, 
+    deleteTransaction, 
+    loading, 
+    applyCategorization 
+  } = useFinance();
 
-  const handleCreateTransaction = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!newTransaction.account_id || !newTransaction.amount) return;
-
-    await createTransaction({
-      ...newTransaction,
-      amount: parseFloat(newTransaction.amount)
-    });
-    
-    setNewTransaction({
-      account_id: '',
-      amount: '',
-      type: 'expense',
-      category_id: '',
-      description: '',
-      transaction_date: new Date().toISOString().split('T')[0]
-    });
-    setShowCreateDialog(false);
+  const handleCreateTransaction = async (transactionData: Parameters<typeof createTransaction>[0]) => {
+    await createTransaction(transactionData);
   };
 
-  const formatAmount = (amount: number, type: Transaction['type']) => {
-    const formattedAmount = new Intl.NumberFormat('fr-FR', {
-      style: 'currency',
-      currency: 'EUR'
-    }).format(amount);
-    
-    return type === 'income' ? `+${formattedAmount}` : `-${formattedAmount}`;
+  const handleUpdateTransaction = async (transactionId: string, updates: Parameters<typeof updateTransaction>[1]) => {
+    await updateTransaction(transactionId, updates);
   };
 
-  const getAmountColor = (type: Transaction['type']) => {
-    return type === 'income' ? 'text-green-600' : 'text-red-600';
+  const handleDeleteTransaction = async (transactionId: string) => {
+    await deleteTransaction(transactionId);
   };
 
-  const filteredCategories = categories.filter(cat => cat.type === newTransaction.type);
-
-  const handleCategoryChange = async (transactionId: string, categoryId: string, transactionType: Transaction['type']) => {
-    const validCategories = categories.filter(cat => cat.type === transactionType);
-    const selectedCategory = validCategories.find(cat => cat.id === categoryId);
-    
-    if (!selectedCategory && categoryId !== '') return;
-    
-    await updateTransaction(transactionId, { 
-      category_id: categoryId === '' ? null : categoryId 
-    });
+  const handleApplyCategorization = async () => {
+    return await applyCategorization();
   };
 
   return (
@@ -83,134 +48,12 @@ export function TransactionsManagement() {
         
         <div className="flex gap-2">
           <BankStatementImport />
-          <Dialog open={showCreateDialog} onOpenChange={setShowCreateDialog}>
-            <DialogTrigger asChild>
-              <Button>
-                <Plus className="h-4 w-4 mr-2" />
-                Nouvelle Transaction
-              </Button>
-            </DialogTrigger>
-            <DialogContent className="max-w-md">
-            <DialogHeader>
-              <DialogTitle>Créer une nouvelle transaction</DialogTitle>
-              <DialogDescription>
-                Enregistrez une recette ou une dépense
-              </DialogDescription>
-            </DialogHeader>
-            
-            <form onSubmit={handleCreateTransaction} className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="transaction-account">Compte</Label>
-                <Select 
-                  value={newTransaction.account_id} 
-                  onValueChange={(value) => setNewTransaction({ ...newTransaction, account_id: value })}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Sélectionner un compte" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {accounts.map((account) => (
-                      <SelectItem key={account.id} value={account.id}>
-                        {account.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="transaction-type">Type</Label>
-                <Select 
-                  value={newTransaction.type} 
-                  onValueChange={(value: Transaction['type']) => {
-                    setNewTransaction({ ...newTransaction, type: value, category_id: '' });
-                  }}
-                >
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="income">
-                      <div className="flex items-center">
-                        <TrendingUp className="h-4 w-4 mr-2 text-green-600" />
-                        Recette
-                      </div>
-                    </SelectItem>
-                    <SelectItem value="expense">
-                      <div className="flex items-center">
-                        <TrendingDown className="h-4 w-4 mr-2 text-red-600" />
-                        Dépense
-                      </div>
-                    </SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="transaction-amount">Montant (€)</Label>
-                <Input
-                  id="transaction-amount"
-                  type="number"
-                  step="0.01"
-                  placeholder="0.00"
-                  value={newTransaction.amount}
-                  onChange={(e) => setNewTransaction({ ...newTransaction, amount: e.target.value })}
-                  required
-                />
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="transaction-category">Catégorie</Label>
-                <Select 
-                  value={newTransaction.category_id} 
-                  onValueChange={(value) => setNewTransaction({ ...newTransaction, category_id: value })}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Sélectionner une catégorie" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {filteredCategories.map((category) => (
-                      <SelectItem key={category.id} value={category.id}>
-                        {category.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="transaction-date">Date</Label>
-                <Input
-                  id="transaction-date"
-                  type="date"
-                  value={newTransaction.transaction_date}
-                  onChange={(e) => setNewTransaction({ ...newTransaction, transaction_date: e.target.value })}
-                  required
-                />
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="transaction-description">Description (optionnel)</Label>
-                <Textarea
-                  id="transaction-description"
-                  placeholder="Description de la transaction..."
-                  value={newTransaction.description}
-                  onChange={(e) => setNewTransaction({ ...newTransaction, description: e.target.value })}
-                  rows={3}
-                />
-              </div>
-              
-              <div className="flex justify-end gap-2">
-                <Button type="button" variant="outline" onClick={() => setShowCreateDialog(false)}>
-                  Annuler
-                </Button>
-                <Button type="submit" disabled={loading}>
-                  Créer la transaction
-                </Button>
-              </div>
-            </form>
-            </DialogContent>
-          </Dialog>
+          <TransactionForm
+            accounts={accounts}
+            categories={categories}
+            loading={loading}
+            onCreateTransaction={handleCreateTransaction}
+          />
         </div>
       </div>
 
@@ -237,104 +80,23 @@ export function TransactionsManagement() {
             <p className="text-muted-foreground text-center mb-4">
               Commencez par enregistrer votre première transaction
             </p>
-            <Button onClick={() => setShowCreateDialog(true)}>
-              <Plus className="h-4 w-4 mr-2" />
-              Créer une transaction
-            </Button>
+            <TransactionForm
+              accounts={accounts}
+              categories={categories}
+              loading={loading}
+              onCreateTransaction={handleCreateTransaction}
+            />
           </CardContent>
         </Card>
       ) : (
-        <Card>
-          <CardHeader>
-            <div className="flex items-center justify-between">
-              <CardTitle className="flex items-center gap-2">
-                <Calendar className="h-5 w-5" />
-                Historique des transactions
-              </CardTitle>
-              <Button 
-                variant="outline" 
-                size="sm"
-                onClick={() => applyCategorization()}
-                disabled={loading}
-              >
-                <Zap className="h-4 w-4 mr-2" />
-                Auto-catégoriser
-              </Button>
-            </div>
-          </CardHeader>
-          <CardContent>
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Date</TableHead>
-                  <TableHead>Compte</TableHead>
-                  <TableHead>Type</TableHead>
-                  <TableHead>Catégorie</TableHead>
-                  <TableHead>Description</TableHead>
-                  <TableHead className="text-right">Montant</TableHead>
-                  <TableHead></TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {transactions.map((transaction) => (
-                  <TableRow key={transaction.id}>
-                    <TableCell>
-                      {new Date(transaction.transaction_date).toLocaleDateString('fr-FR')}
-                    </TableCell>
-                    <TableCell>{transaction.accounts?.name}</TableCell>
-                    <TableCell>
-                      <Badge variant={transaction.type === 'income' ? 'default' : 'destructive'} className="text-xs">
-                        {transaction.type === 'income' ? (
-                          <><TrendingUp className="h-3 w-3 mr-1" />Recette</>
-                        ) : (
-                          <><TrendingDown className="h-3 w-3 mr-1" />Dépense</>
-                        )}
-                      </Badge>
-                    </TableCell>
-                    <TableCell>
-                      <Select
-                        value={transaction.category_id || ''}
-                        onValueChange={(value) => handleCategoryChange(transaction.id, value, transaction.type)}
-                      >
-                        <SelectTrigger className="w-full max-w-[200px]">
-                          <SelectValue placeholder="Sélectionner une catégorie" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="">
-                            <span className="text-muted-foreground">Aucune catégorie</span>
-                          </SelectItem>
-                          {categories
-                            .filter(cat => cat.type === transaction.type)
-                            .map((category) => (
-                              <SelectItem key={category.id} value={category.id}>
-                                {category.name}
-                              </SelectItem>
-                            ))}
-                        </SelectContent>
-                      </Select>
-                    </TableCell>
-                    <TableCell className="max-w-xs truncate">
-                      {transaction.description || '-'}
-                    </TableCell>
-                    <TableCell className={`text-right font-medium ${getAmountColor(transaction.type)}`}>
-                      {formatAmount(Number(transaction.amount), transaction.type)}
-                    </TableCell>
-                    <TableCell>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => deleteTransaction(transaction.id)}
-                        className="text-red-600 hover:text-red-700 hover:bg-red-50"
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </CardContent>
-        </Card>
+        <TransactionTable
+          transactions={transactions}
+          categories={categories}
+          loading={loading}
+          onDeleteTransaction={handleDeleteTransaction}
+          onUpdateTransaction={handleUpdateTransaction}
+          onApplyCategorization={handleApplyCategorization}
+        />
       )}
       
       {/* Configuration des règles de catégorisation automatique */}
