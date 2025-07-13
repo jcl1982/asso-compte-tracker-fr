@@ -64,21 +64,36 @@ export function BankStatementImport() {
     return data.map((row, index) => {
       // Essayer différents formats de colonnes courantes
       const date = row['Date'] || row['date'] || row['DATE'] || row['Date de valeur'] || '';
-      const description = row['Description'] || row['description'] || row['Libellé'] || row['Opération'] || '';
-      let amount = row['Montant'] || row['montant'] || row['Amount'] || row['amount'] || row['Crédit'] || row['Débit'] || 0;
+      const description = row['Libellé'] || row['Description'] || row['description'] || row['Opération'] || '';
       
-      // Traitement du montant pour gérer les différents formats
-      if (typeof amount === 'string') {
-        amount = parseFloat(amount.replace(/[^\d.-]/g, ''));
+      // Nouveau format avec colonnes séparées Débit/Crédit
+      const debit = row['Débit euros'] || row['Débit'] || row['debit'] || 0;
+      const credit = row['Crédit euros'] || row['Crédit'] || row['credit'] || 0;
+      
+      let amount = 0;
+      let type: 'income' | 'expense' = 'expense';
+      
+      // Traitement des montants selon le nouveau format
+      if (debit && debit !== '' && parseFloat(String(debit)) > 0) {
+        amount = parseFloat(String(debit));
+        type = 'expense';
+      } else if (credit && credit !== '' && parseFloat(String(credit)) > 0) {
+        amount = parseFloat(String(credit));
+        type = 'income';
+      } else {
+        // Fallback vers l'ancien format pour compatibilité
+        let oldAmount = row['Montant'] || row['montant'] || row['Amount'] || row['amount'] || 0;
+        if (typeof oldAmount === 'string') {
+          oldAmount = parseFloat(oldAmount.replace(/[^\d.-]/g, ''));
+        }
+        amount = Math.abs(Number(oldAmount));
+        type = oldAmount >= 0 ? 'income' : 'expense';
       }
-      
-      // Déterminer le type (recette/dépense) basé sur le signe du montant
-      const type: 'income' | 'expense' = amount >= 0 ? 'income' : 'expense';
       
       return {
         date: formatDate(date),
         description: String(description),
-        amount: Math.abs(Number(amount)),
+        amount: Number(amount),
         type,
         category: '',
         accountName: ''
@@ -100,10 +115,22 @@ export function BankStatementImport() {
         return `${date.y}-${String(date.m).padStart(2, '0')}-${String(date.d).padStart(2, '0')}`;
       }
       
-      // Si c'est une chaîne, essayer de la parser
-      const date = new Date(dateInput);
-      if (!isNaN(date.getTime())) {
-        return date.toISOString().split('T')[0];
+      // Si c'est une chaîne au format DD/MM/YYYY ou DD-MM-YYYY
+      if (typeof dateInput === 'string') {
+        const dateStr = String(dateInput).trim();
+        
+        // Format DD/MM/YYYY ou DD-MM-YYYY
+        const ddmmyyyyMatch = dateStr.match(/^(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{4})$/);
+        if (ddmmyyyyMatch) {
+          const [, day, month, year] = ddmmyyyyMatch;
+          return `${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}`;
+        }
+        
+        // Essayer de parser normalement
+        const date = new Date(dateInput);
+        if (!isNaN(date.getTime())) {
+          return date.toISOString().split('T')[0];
+        }
       }
     } catch (error) {
       console.error('Erreur de formatage de date:', error);
@@ -194,32 +221,43 @@ export function BankStatementImport() {
   };
 
   const downloadTemplate = () => {
-    // Créer un workbook avec des données d'exemple
+    // Créer un workbook avec des données d'exemple selon le format demandé
     const templateData = [
       {
-        'Date': '2024-01-15',
-        'Description': 'ACHAT CB MONOPRIX PARIS',
-        'Montant': -45.67
+        'Date': '05/05/2025',
+        'Libellé': 'PRELEVEMENT Frais carte étranger hors UE',
+        'Débit euros': 0.98,
+        'Crédit euros': ''
       },
       {
-        'Date': '2024-01-16',
-        'Description': 'VIREMENT SALAIRE ENTREPRISE ABC',
-        'Montant': 2500.00
+        'Date': '05/05/2025',
+        'Libellé': 'X7153 CAP BAIE MAHAULT 04/05 PAIEMENT PAR CARTE',
+        'Débit euros': 44.01,
+        'Crédit euros': ''
       },
       {
-        'Date': '2024-01-17',
-        'Description': 'PRELEVEMENT EDF ENERGIE',
-        'Montant': -89.34
+        'Date': '05/05/2025',
+        'Libellé': 'X7153 F-F-S-A PARIS 04/05 PAIEMENT PAR CARTE',
+        'Débit euros': 283.00,
+        'Crédit euros': ''
       },
       {
-        'Date': '2024-01-18',
-        'Description': 'ACHAT CB RESTAURANT LE BISTROT',
-        'Montant': -35.20
+        'Date': '05/05/2025',
+        'Libellé': 'X7153 KARUCASH LES ABYMES 02/05 PAIEMENT PAR CARTE',
+        'Débit euros': 237.51,
+        'Crédit euros': ''
       },
       {
-        'Date': '2024-01-20',
-        'Description': 'REMBOURSEMENT SECU',
-        'Montant': 125.45
+        'Date': '05/05/2025',
+        'Libellé': 'VIREMENT SALAIRE ENTREPRISE ABC',
+        'Débit euros': '',
+        'Crédit euros': 2500.00
+      },
+      {
+        'Date': '05/05/2025',
+        'Libellé': 'X7153 AVIS GUADELOUPE LE L 04/05 PAIEMENT PAR CARTE',
+        'Débit euros': 105.00,
+        'Crédit euros': ''
       }
     ];
 
@@ -227,14 +265,12 @@ export function BankStatementImport() {
     const workbook = XLSX.utils.book_new();
     const worksheet = XLSX.utils.json_to_sheet(templateData);
     
-    // Ajouter des styles aux en-têtes
-    const range = XLSX.utils.decode_range(worksheet['!ref'] || 'A1');
-    
     // Définir la largeur des colonnes
     worksheet['!cols'] = [
       { width: 12 }, // Date
-      { width: 40 }, // Description
-      { width: 15 }  // Montant
+      { width: 50 }, // Libellé
+      { width: 15 }, // Débit euros
+      { width: 15 }  // Crédit euros
     ];
 
     XLSX.utils.book_append_sheet(workbook, worksheet, 'Modèle Relevé Bancaire');
@@ -303,7 +339,7 @@ export function BankStatementImport() {
               disabled={importing}
             />
             <p className="text-sm text-muted-foreground">
-              Le fichier doit contenir des colonnes pour : Date, Description/Libellé, Montant
+              Le fichier doit contenir des colonnes : Date, Libellé, Débit euros, Crédit euros
             </p>
           </div>
 
