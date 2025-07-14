@@ -8,20 +8,11 @@ import { useAuth } from '@/hooks/useAuth';
 import { useFinance } from '@/hooks/useFinance';
 import { ArrowLeft, TrendingUp, TrendingDown, PieChart, BarChart3, Calendar, DollarSign, Target, Activity } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import { 
-  LineChart, 
-  Line, 
-  XAxis, 
-  YAxis, 
-  CartesianGrid, 
-  Tooltip, 
-  ResponsiveContainer, 
-  BarChart, 
-  Bar, 
-  PieChart as RechartsPieChart, 
-  Pie,
-  Cell 
-} from 'recharts';
+import { Chart3DContainer } from '@/components/charts/Chart3DContainer';
+import { Bar3DChart } from '@/components/charts/Bar3DChart';
+import { Pie3DChart } from '@/components/charts/Pie3DChart';
+import { Line3DChart } from '@/components/charts/Line3DChart';
+import { Stats3DCard } from '@/components/charts/Stats3DCard';
 
 export default function Reports() {
   const { user } = useAuth();
@@ -88,7 +79,7 @@ export default function Reports() {
       return {
         ...day,
         balance: cumulativeBalance,
-        date: new Date(day.date).toLocaleDateString('fr-FR', { month: 'short', day: 'numeric' })
+        name: new Date(day.date).toLocaleDateString('fr-FR', { month: 'short', day: 'numeric' })
       };
     });
   }, [filteredTransactions]);
@@ -179,68 +170,47 @@ export default function Reports() {
 
       {/* Main Content */}
       <main className="container mx-auto px-4 py-8">
-        {/* Statistiques générales */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Recettes totales</CardTitle>
-              <TrendingUp className="h-4 w-4 text-green-600" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold text-green-600">
-                {formatCurrency(stats.totalIncome)}
-              </div>
-              <p className="text-xs text-muted-foreground">
-                Sur les {selectedPeriod} derniers jours
-              </p>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Dépenses totales</CardTitle>
-              <TrendingDown className="h-4 w-4 text-red-600" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold text-red-600">
-                {formatCurrency(stats.totalExpenses)}
-              </div>
-              <p className="text-xs text-muted-foreground">
-                Sur les {selectedPeriod} derniers jours
-              </p>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Solde net</CardTitle>
-              <DollarSign className="h-4 w-4" />
-            </CardHeader>
-            <CardContent>
-              <div className={`text-2xl font-bold ${stats.balance >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-                {formatCurrency(stats.balance)}
-              </div>
-              <p className="text-xs text-muted-foreground">
-                Différence recettes - dépenses
-              </p>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Transactions</CardTitle>
-              <Activity className="h-4 w-4" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">
-                {stats.transactionCount}
-              </div>
-              <p className="text-xs text-muted-foreground">
-                Moyenne: {formatCurrency(stats.averageTransaction)}
-              </p>
-            </CardContent>
-          </Card>
-        </div>
+        {/* Statistiques générales en 3D */}
+        <Card className="mb-8">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Activity className="h-5 w-5" />
+              Tableau de bord 3D
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <Chart3DContainer height="300px">
+              <Stats3DCard
+                title="Recettes totales"
+                value={formatCurrency(stats.totalIncome)}
+                subtitle={`Sur les ${selectedPeriod} derniers jours`}
+                color="#10b981"
+                position={[-3, 0, 0]}
+              />
+              <Stats3DCard
+                title="Dépenses totales"
+                value={formatCurrency(stats.totalExpenses)}
+                subtitle={`Sur les ${selectedPeriod} derniers jours`}
+                color="#ef4444"
+                position={[-1, 0, 0]}
+              />
+              <Stats3DCard
+                title="Solde net"
+                value={formatCurrency(stats.balance)}
+                subtitle="Différence recettes - dépenses"
+                color={stats.balance >= 0 ? "#10b981" : "#ef4444"}
+                position={[1, 0, 0]}
+              />
+              <Stats3DCard
+                title="Transactions"
+                value={stats.transactionCount.toString()}
+                subtitle={`Moyenne: ${formatCurrency(stats.averageTransaction)}`}
+                color="#3b82f6"
+                position={[3, 0, 0]}
+              />
+            </Chart3DContainer>
+          </CardContent>
+        </Card>
 
         {/* Graphiques et analyses */}
         <Tabs defaultValue="evolution" className="space-y-6">
@@ -256,29 +226,21 @@ export default function Reports() {
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <Calendar className="h-5 w-5" />
-                  Évolution des flux financiers
+                  Évolution des flux financiers en 3D
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="h-80">
-                  <ResponsiveContainer width="100%" height="100%">
-                    <LineChart data={evolutionData}>
-                      <CartesianGrid strokeDasharray="3 3" />
-                      <XAxis dataKey="date" />
-                      <YAxis tickFormatter={(value) => formatCurrency(value)} />
-                      <Tooltip 
-                        formatter={(value: number, name: string) => [
-                          formatCurrency(value),
-                          name === 'income' ? 'Recettes' : 
-                          name === 'expenses' ? 'Dépenses' : 'Solde cumulé'
-                        ]}
-                      />
-                      <Line type="monotone" dataKey="income" stroke="#10b981" name="income" strokeWidth={2} />
-                      <Line type="monotone" dataKey="expenses" stroke="#ef4444" name="expenses" strokeWidth={2} />
-                      <Line type="monotone" dataKey="balance" stroke="#3b82f6" name="balance" strokeWidth={3} />
-                    </LineChart>
-                  </ResponsiveContainer>
-                </div>
+                <Chart3DContainer height="400px">
+                  <Line3DChart
+                    data={evolutionData}
+                    lines={[
+                      { key: 'income', color: '#10b981', name: 'Recettes' },
+                      { key: 'expenses', color: '#ef4444', name: 'Dépenses' },
+                      { key: 'balance', color: '#3b82f6', name: 'Solde cumulé' }
+                    ]}
+                    formatValue={formatCurrency}
+                  />
+                </Chart3DContainer>
               </CardContent>
             </Card>
           </TabsContent>
@@ -289,22 +251,20 @@ export default function Reports() {
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
                     <PieChart className="h-5 w-5" />
-                    Répartition par catégories
+                    Répartition par catégories en 3D
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <div className="h-80">
-                    <ResponsiveContainer width="100%" height="100%">
-                      <BarChart data={categoryData}>
-                        <CartesianGrid strokeDasharray="3 3" />
-                        <XAxis dataKey="name" angle={-45} textAnchor="end" height={100} />
-                        <YAxis tickFormatter={(value) => formatCurrency(value)} />
-                        <Tooltip formatter={(value: number) => formatCurrency(value)} />
-                        <Bar dataKey="income" fill="#10b981" name="Recettes" />
-                        <Bar dataKey="expenses" fill="#ef4444" name="Dépenses" />
-                      </BarChart>
-                    </ResponsiveContainer>
-                  </div>
+                  <Chart3DContainer height="400px">
+                    <Bar3DChart
+                      data={categoryData.map(cat => ({
+                        name: cat.name,
+                        value: cat.total,
+                        color: COLORS[categoryData.indexOf(cat) % COLORS.length]
+                      }))}
+                      formatValue={formatCurrency}
+                    />
+                  </Chart3DContainer>
                 </CardContent>
               </Card>
 
@@ -343,29 +303,20 @@ export default function Reports() {
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
                     <Target className="h-5 w-5" />
-                    Répartition des soldes par type de compte
+                    Répartition des soldes par type de compte en 3D
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <div className="h-80">
-                    <ResponsiveContainer width="100%" height="100%">
-                      <RechartsPieChart>
-                        <Pie
-                          data={accountTypeData}
-                          cx="50%"
-                          cy="50%"
-                          outerRadius={80}
-                          dataKey="balance"
-                          label={({ type, balance }) => `${type}: ${formatCurrency(balance)}`}
-                        >
-                          {accountTypeData.map((entry, index) => (
-                            <Cell key={`cell-${index}`} fill={entry.fill} />
-                          ))}
-                        </Pie>
-                        <Tooltip formatter={(value: number) => formatCurrency(value)} />
-                      </RechartsPieChart>
-                    </ResponsiveContainer>
-                  </div>
+                  <Chart3DContainer height="400px">
+                    <Pie3DChart
+                      data={accountTypeData.map(account => ({
+                        name: account.type,
+                        value: account.balance,
+                        color: account.fill
+                      }))}
+                      formatValue={formatCurrency}
+                    />
+                  </Chart3DContainer>
                 </CardContent>
               </Card>
 
@@ -407,32 +358,19 @@ export default function Reports() {
           <TabsContent value="comparison" className="space-y-6">
             <Card>
               <CardHeader>
-                <CardTitle>Comparaison Recettes vs Dépenses</CardTitle>
+                <CardTitle>Comparaison Recettes vs Dépenses en 3D</CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="h-80">
-                  <ResponsiveContainer width="100%" height="100%">
-                    <BarChart data={[
-                      { name: 'Recettes', montant: stats.totalIncome, fill: '#10b981' },
-                      { name: 'Dépenses', montant: stats.totalExpenses, fill: '#ef4444' },
-                      { name: 'Solde net', montant: Math.abs(stats.balance), fill: stats.balance >= 0 ? '#10b981' : '#ef4444' }
-                    ]}>
-                      <CartesianGrid strokeDasharray="3 3" />
-                      <XAxis dataKey="name" />
-                      <YAxis tickFormatter={(value) => formatCurrency(value)} />
-                      <Tooltip formatter={(value: number) => formatCurrency(value)} />
-                      <Bar dataKey="montant">
-                        {[
-                          { name: 'Recettes', montant: stats.totalIncome, fill: '#10b981' },
-                          { name: 'Dépenses', montant: stats.totalExpenses, fill: '#ef4444' },
-                          { name: 'Solde net', montant: Math.abs(stats.balance), fill: stats.balance >= 0 ? '#10b981' : '#ef4444' }
-                        ].map((entry, index) => (
-                          <Cell key={`cell-${index}`} fill={entry.fill} />
-                        ))}
-                      </Bar>
-                    </BarChart>
-                  </ResponsiveContainer>
-                </div>
+                <Chart3DContainer height="400px">
+                  <Bar3DChart
+                    data={[
+                      { name: 'Recettes', value: stats.totalIncome, color: '#10b981' },
+                      { name: 'Dépenses', value: stats.totalExpenses, color: '#ef4444' },
+                      { name: 'Solde net', value: Math.abs(stats.balance), color: stats.balance >= 0 ? '#10b981' : '#ef4444' }
+                    ]}
+                    formatValue={formatCurrency}
+                  />
+                </Chart3DContainer>
               </CardContent>
             </Card>
 
