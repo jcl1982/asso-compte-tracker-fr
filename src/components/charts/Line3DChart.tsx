@@ -28,6 +28,23 @@ export function Line3DChart({ data, lines, formatValue, animate = true }: Line3D
     }
   });
 
+  // Vérification de sécurité pour les données vides
+  if (!data || data.length === 0) {
+    return (
+      <group>
+        <Text
+          position={[0, 0, 0]}
+          fontSize={0.3}
+          color="hsl(var(--muted-foreground))"
+          anchorX="center"
+          anchorY="middle"
+        >
+          Aucune donnée disponible
+        </Text>
+      </group>
+    );
+  }
+
   const { maxValue, minValue } = useMemo(() => {
     let max = -Infinity;
     let min = Infinity;
@@ -39,6 +56,11 @@ export function Line3DChart({ data, lines, formatValue, animate = true }: Line3D
         min = Math.min(min, value);
       });
     });
+    
+    // Vérification de sécurité pour éviter les divisions par zéro ou les valeurs invalides
+    if (max === -Infinity) max = 1;
+    if (min === Infinity) min = 0;
+    if (max === min) max = min + 1;
     
     return { maxValue: max, minValue: min };
   }, [data, lines]);

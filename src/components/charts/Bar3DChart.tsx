@@ -24,7 +24,27 @@ export function Bar3DChart({ data, formatValue, animate = true }: Bar3DChartProp
     }
   });
 
-  const maxValue = useMemo(() => Math.max(...data.map(d => d.value)), [data]);
+  // Vérification de sécurité pour les données vides
+  if (!data || data.length === 0) {
+    return (
+      <group>
+        <Text
+          position={[0, 0, 0]}
+          fontSize={0.3}
+          color="hsl(var(--muted-foreground))"
+          anchorX="center"
+          anchorY="middle"
+        >
+          Aucune donnée disponible
+        </Text>
+      </group>
+    );
+  }
+
+  const maxValue = useMemo(() => {
+    const max = Math.max(...data.map(d => d.value));
+    return max > 0 ? max : 1; // Éviter division par zéro
+  }, [data]);
 
   const bars = useMemo(() => {
     return data.map((item, index) => {

@@ -24,7 +24,27 @@ export function Pie3DChart({ data, formatValue, animate = true }: Pie3DChartProp
     }
   });
 
-  const total = useMemo(() => data.reduce((sum, item) => sum + item.value, 0), [data]);
+  // Vérification de sécurité pour les données vides
+  if (!data || data.length === 0) {
+    return (
+      <group>
+        <Text
+          position={[0, 0, 0]}
+          fontSize={0.3}
+          color="hsl(var(--muted-foreground))"
+          anchorX="center"
+          anchorY="middle"
+        >
+          Aucune donnée disponible
+        </Text>
+      </group>
+    );
+  }
+
+  const total = useMemo(() => {
+    const sum = data.reduce((sum, item) => sum + item.value, 0);
+    return sum > 0 ? sum : 1; // Éviter division par zéro
+  }, [data]);
 
   const segments = useMemo(() => {
     let currentAngle = 0;
