@@ -74,16 +74,16 @@ export default function Dashboard() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background to-muted">
+    <div className="min-h-screen bg-gradient-to-br from-vibrant-blue/10 via-background to-vibrant-purple/10">
       {/* Header */}
       <header className="border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
         <div className="container mx-auto px-4 py-4 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="bg-primary/10 p-2 rounded-lg">
-              <TrendingUp className="h-6 w-6 text-primary" />
+            <div className="bg-gradient-to-r from-vibrant-blue to-vibrant-purple p-2 rounded-lg shadow-lg">
+              <TrendingUp className="h-6 w-6 text-white" />
             </div>
             <div>
-              <h1 className="text-xl font-bold">FinanceAssoc</h1>
+              <h1 className="text-xl font-bold bg-gradient-to-r from-vibrant-blue to-vibrant-purple bg-clip-text text-transparent">FinanceAssoc</h1>
               <p className="text-sm text-muted-foreground">Gestion financière</p>
             </div>
           </div>
@@ -112,31 +112,37 @@ export default function Dashboard() {
 
         {/* Summary Cards */}
         <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-          <Card>
+          <Card className="border-l-4 border-l-vibrant-blue bg-gradient-to-r from-vibrant-blue/5 to-transparent shadow-lg hover:shadow-xl transition-all">
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm font-medium text-muted-foreground">Solde Total</p>
-                  <p className="text-2xl font-bold">{formatCurrency(totalBalance)}</p>
+                  <p className="text-2xl font-bold text-vibrant-blue">{formatCurrency(totalBalance)}</p>
                 </div>
-                <TrendingUp className={`h-8 w-8 ${totalBalance >= 0 ? 'text-green-500' : 'text-red-500'}`} />
+                <div className="bg-vibrant-blue/10 p-2 rounded-lg">
+                  <TrendingUp className="h-8 w-8 text-vibrant-blue" />
+                </div>
               </div>
             </CardContent>
           </Card>
 
-          {Object.entries(balanceByType).map(([type, balance]) => {
+          {Object.entries(balanceByType).map(([type, balance], index) => {
             const Icon = accountTypeIcons[type as keyof typeof accountTypeIcons];
             const label = accountTypeLabels[type as keyof typeof accountTypeLabels];
+            const colors = ['vibrant-green', 'vibrant-purple', 'vibrant-orange', 'vibrant-pink'];
+            const color = colors[index % colors.length];
             
             return (
-              <Card key={type}>
+              <Card key={type} className={`border-l-4 border-l-${color} bg-gradient-to-r from-${color}/5 to-transparent shadow-lg hover:shadow-xl transition-all`}>
                 <CardContent className="p-6">
                   <div className="flex items-center justify-between">
                     <div>
                       <p className="text-sm font-medium text-muted-foreground">{label}</p>
-                      <p className="text-2xl font-bold">{formatCurrency(balance)}</p>
+                      <p className={`text-2xl font-bold text-${color}`}>{formatCurrency(balance)}</p>
                     </div>
-                    <Icon className="h-8 w-8 text-blue-500" />
+                    <div className={`bg-${color}/10 p-2 rounded-lg`}>
+                      <Icon className={`h-8 w-8 text-${color}`} />
+                    </div>
                   </div>
                 </CardContent>
               </Card>
@@ -146,11 +152,13 @@ export default function Dashboard() {
 
         {/* Feature Cards */}
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
-          <Card className="hover:shadow-lg transition-shadow">
+          <Card className="hover:shadow-xl transition-all duration-300 border-vibrant-green/20 bg-gradient-to-br from-vibrant-green/5 to-transparent group">
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
-                <FileText className="h-5 w-5 text-primary" />
-                Comptes & Saisie
+                <div className="bg-vibrant-green/10 p-2 rounded-lg group-hover:bg-vibrant-green/20 transition-colors">
+                  <FileText className="h-5 w-5 text-vibrant-green" />
+                </div>
+                <span className="text-vibrant-green">Comptes & Saisie</span>
               </CardTitle>
               <CardDescription>
                 Gérez vos comptes bancaires, espèces, subventions et cotisations
@@ -158,7 +166,7 @@ export default function Dashboard() {
             </CardHeader>
             <CardContent>
               <Button 
-                className="w-full" 
+                className="w-full bg-vibrant-green hover:bg-vibrant-green/90" 
                 onClick={() => navigate('/accounts')}
               >
                 Gérer les comptes
@@ -166,11 +174,13 @@ export default function Dashboard() {
             </CardContent>
           </Card>
 
-          <Card className="hover:shadow-lg transition-shadow">
+          <Card className="hover:shadow-xl transition-all duration-300 border-vibrant-purple/20 bg-gradient-to-br from-vibrant-purple/5 to-transparent group">
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
-                <BarChart3 className="h-5 w-5 text-primary" />
-                Transactions
+                <div className="bg-vibrant-purple/10 p-2 rounded-lg group-hover:bg-vibrant-purple/20 transition-colors">
+                  <BarChart3 className="h-5 w-5 text-vibrant-purple" />
+                </div>
+                <span className="text-vibrant-purple">Transactions</span>
               </CardTitle>
               <CardDescription>
                 Enregistrez et suivez toutes vos recettes et dépenses
@@ -178,7 +188,7 @@ export default function Dashboard() {
             </CardHeader>
             <CardContent>
               <Button 
-                className="w-full"
+                className="w-full bg-vibrant-purple hover:bg-vibrant-purple/90"
                 onClick={() => navigate('/transactions')}
               >
                 Gérer les transactions
@@ -186,11 +196,13 @@ export default function Dashboard() {
             </CardContent>
           </Card>
 
-          <Card className="hover:shadow-lg transition-shadow">
+          <Card className="hover:shadow-xl transition-all duration-300 border-vibrant-orange/20 bg-gradient-to-br from-vibrant-orange/5 to-transparent group">
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
-                <Users className="h-5 w-5 text-primary" />
-                Rapports & Analyses
+                <div className="bg-vibrant-orange/10 p-2 rounded-lg group-hover:bg-vibrant-orange/20 transition-colors">
+                  <Users className="h-5 w-5 text-vibrant-orange" />
+                </div>
+                <span className="text-vibrant-orange">Rapports & Analyses</span>
               </CardTitle>
               <CardDescription>
                 Générez des rapports automatiques et visualisez vos données
@@ -198,7 +210,7 @@ export default function Dashboard() {
             </CardHeader>
             <CardContent>
               <Button 
-                className="w-full"
+                className="w-full bg-vibrant-orange hover:bg-vibrant-orange/90"
                 onClick={() => navigate('/reports')}
               >
                 Consulter les rapports
