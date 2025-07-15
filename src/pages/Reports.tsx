@@ -195,7 +195,9 @@ export default function Reports() {
   };
 
 
-  // Suppression de la vérification d'authentification pour permettre l'accès public
+  if (!user) {
+    return null;
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-background to-muted">
