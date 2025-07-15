@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -24,7 +24,13 @@ export function TransactionTable({
   onUpdateTransaction, 
   onApplyCategorization 
 }: TransactionTableProps) {
-  const [categoryFilter, setCategoryFilter] = useState<string>('all');
+  const [categoryFilter, setCategoryFilter] = useState<string>(() => {
+    return localStorage.getItem('transaction-category-filter') || 'all';
+  });
+
+  useEffect(() => {
+    localStorage.setItem('transaction-category-filter', categoryFilter);
+  }, [categoryFilter]);
 
   const filteredTransactions = useMemo(() => {
     if (categoryFilter === 'all') {
