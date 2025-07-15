@@ -131,6 +131,8 @@ export default function Reports() {
     }));
   }, [getBalanceByType]);
 
+  const COLORS = ['#8884d8', '#82ca9d', '#ffc658', '#ff7300', '#8dd1e1', '#d084d0', '#ffb347', '#87ceeb'];
+
   // Données pour le donut chart des comptes
   const donutChartData = useMemo(() => {
     const balanceByType = getBalanceByType();
@@ -172,7 +174,6 @@ export default function Reports() {
     }).format(amount);
   };
 
-  const COLORS = ['#8884d8', '#82ca9d', '#ffc658', '#ff7300', '#8dd1e1', '#d084d0', '#ffb347', '#87ceeb'];
 
   if (!user) {
     return null;
