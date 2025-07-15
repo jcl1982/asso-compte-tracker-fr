@@ -1,8 +1,9 @@
 import React from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Calendar, Plus } from 'lucide-react';
+import { Calendar, Plus, Shield } from 'lucide-react';
 import { useFinance } from '@/hooks/useFinance';
+import { useProfile } from '@/hooks/useProfile';
 import { BankStatementImport } from './BankStatementImport';
 import { AutoCategorizationRules } from './AutoCategorizationRules';
 import { TransactionForm } from './TransactionForm';
@@ -21,6 +22,8 @@ export function TransactionsManagement() {
     applyCategorization,
     fetchCategories
   } = useFinance();
+  
+  const { isAdmin } = useProfile();
 
   const handleCreateTransaction = async (transactionData: Parameters<typeof createTransaction>[0]) => {
     await createTransaction(transactionData);
@@ -37,6 +40,23 @@ export function TransactionsManagement() {
   const handleApplyCategorization = async () => {
     return await applyCategorization();
   };
+
+  // Si l'utilisateur n'est pas admin, afficher un message d'accès refusé
+  if (!isAdmin) {
+    return (
+      <Card className="max-w-md mx-auto">
+        <CardContent className="flex flex-col items-center justify-center py-12">
+          <div className="bg-destructive/10 p-3 rounded-full w-fit mx-auto mb-4">
+            <Shield className="h-8 w-8 text-destructive" />
+          </div>
+          <h3 className="text-lg font-semibold text-destructive mb-2">Accès refusé</h3>
+          <p className="text-muted-foreground text-center">
+            Seuls les administrateurs peuvent saisir et gérer les transactions.
+          </p>
+        </CardContent>
+      </Card>
+    );
+  }
 
   return (
     <div className="space-y-6">
