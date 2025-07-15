@@ -315,27 +315,36 @@ export default function Reports() {
                   Évolution des flux financiers
                 </CardTitle>
               </CardHeader>
-              <CardContent>
-                <div className="h-80">
-                  <ResponsiveContainer width="100%" height="100%">
-                    <LineChart data={evolutionData}>
-                      <CartesianGrid strokeDasharray="3 3" />
-                      <XAxis dataKey="date" />
-                      <YAxis tickFormatter={(value) => formatCurrency(value)} />
-                      <Tooltip 
-                        formatter={(value: number, name: string) => [
-                          formatCurrency(value),
-                          name === 'income' ? 'Recettes' : 
-                          name === 'expenses' ? 'Dépenses' : 'Solde cumulé'
-                        ]}
-                      />
-                      <Line type="monotone" dataKey="income" stroke="#10b981" name="income" strokeWidth={2} />
-                      <Line type="monotone" dataKey="expenses" stroke="#ef4444" name="expenses" strokeWidth={2} />
-                      <Line type="monotone" dataKey="balance" stroke="#3b82f6" name="balance" strokeWidth={3} />
-                    </LineChart>
-                  </ResponsiveContainer>
-                </div>
-              </CardContent>
+                <CardContent>
+                  <div className="h-80">
+                    <ResponsiveContainer width="100%" height="100%">
+                      <LineChart data={evolutionData} margin={{ top: 20, right: 30, left: 80, bottom: 20 }}>
+                        <CartesianGrid strokeDasharray="3 3" />
+                        <XAxis dataKey="date" />
+                        <YAxis 
+                          tickFormatter={(value) => {
+                            // Format plus compact pour l'axe Y
+                            if (Math.abs(value) >= 1000) {
+                              return `${(value / 1000).toFixed(0)}k€`;
+                            }
+                            return `${value}€`;
+                          }}
+                          width={70}
+                        />
+                        <Tooltip 
+                          formatter={(value: number, name: string) => [
+                            formatCurrency(value),
+                            name === 'income' ? 'Recettes' : 
+                            name === 'expenses' ? 'Dépenses' : 'Solde cumulé'
+                          ]}
+                        />
+                        <Line type="monotone" dataKey="income" stroke="#10b981" name="income" strokeWidth={2} />
+                        <Line type="monotone" dataKey="expenses" stroke="#ef4444" name="expenses" strokeWidth={2} />
+                        <Line type="monotone" dataKey="balance" stroke="#3b82f6" name="balance" strokeWidth={3} />
+                      </LineChart>
+                    </ResponsiveContainer>
+                  </div>
+                </CardContent>
             </Card>
           </TabsContent>
 
