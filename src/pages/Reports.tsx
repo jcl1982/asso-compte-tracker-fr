@@ -318,7 +318,7 @@ export default function Reports() {
                 <CardContent>
                   <div className="h-80">
                     <ResponsiveContainer width="100%" height="100%">
-                      <LineChart data={evolutionData} margin={{ top: 20, right: 30, left: 80, bottom: 20 }}>
+                      <LineChart data={evolutionData} margin={{ top: 20, right: 30, left: 50, bottom: 20 }}>
                         <CartesianGrid strokeDasharray="3 3" />
                         <XAxis dataKey="date" />
                         <YAxis 
