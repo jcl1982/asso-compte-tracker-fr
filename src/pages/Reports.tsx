@@ -22,6 +22,7 @@ import {
   Pie,
   Cell 
 } from 'recharts';
+import { DonutChart } from '@/components/DonutChart';
 
 export default function Reports() {
   const { user } = useAuth();
@@ -129,6 +130,40 @@ export default function Reports() {
             type === 'grants' ? '#ffc658' : '#ff7300'
     }));
   }, [getBalanceByType]);
+
+  // Données pour le donut chart des comptes
+  const donutChartData = useMemo(() => {
+    const balanceByType = getBalanceByType();
+    return Object.entries(balanceByType).map(([type, balance]) => ({
+      name: type === 'bank' ? 'Banque' : 
+            type === 'cash' ? 'Liquide' : 
+            type === 'grants' ? 'Subventions' : 'Cotisations',
+      value: Number(balance),
+      color: type === 'bank' ? 'hsl(var(--primary))' : 
+             type === 'cash' ? 'hsl(142, 76%, 36%)' : 
+             type === 'grants' ? 'hsl(48, 100%, 67%)' : 'hsl(24, 100%, 50%)'
+    }));
+  }, [getBalanceByType]);
+
+  // Données pour le donut chart des catégories
+  const categoryDonutData = useMemo(() => {
+    const expenseCategories = filteredTransactions
+      .filter(t => t.type === 'expense')
+      .reduce((acc, transaction) => {
+        const categoryName = transaction.categories?.name || 'Non catégorisé';
+        acc[categoryName] = (acc[categoryName] || 0) + Number(transaction.amount);
+        return acc;
+      }, {} as Record<string, number>);
+
+    return Object.entries(expenseCategories)
+      .map(([name, value], index) => ({
+        name,
+        value,
+        color: COLORS[index % COLORS.length]
+      }))
+      .sort((a, b) => b.value - a.value)
+      .slice(0, 6); // Top 6 categories
+  }, [filteredTransactions]);
 
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('fr-FR', {
@@ -289,21 +324,18 @@ export default function Reports() {
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
                     <PieChart className="h-5 w-5" />
-                    Répartition par catégories
+                    Répartition des dépenses par catégories
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <div className="h-80">
-                    <ResponsiveContainer width="100%" height="100%">
-                      <BarChart data={categoryData}>
-                        <CartesianGrid strokeDasharray="3 3" />
-                        <XAxis dataKey="name" angle={-45} textAnchor="end" height={100} />
-                        <YAxis tickFormatter={(value) => formatCurrency(value)} />
-                        <Tooltip formatter={(value: number) => formatCurrency(value)} />
-                        <Bar dataKey="income" fill="#10b981" name="Recettes" />
-                        <Bar dataKey="expenses" fill="#ef4444" name="Dépenses" />
-                      </BarChart>
-                    </ResponsiveContainer>
+                  <div className="h-96">
+                    <DonutChart 
+                      data={categoryDonutData}
+                      centerText={{
+                        title: "Total dépenses",
+                        value: formatCurrency(stats.totalExpenses)
+                      }}
+                    />
                   </div>
                 </CardContent>
               </Card>
@@ -347,24 +379,14 @@ export default function Reports() {
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <div className="h-80">
-                    <ResponsiveContainer width="100%" height="100%">
-                      <RechartsPieChart>
-                        <Pie
-                          data={accountTypeData}
-                          cx="50%"
-                          cy="50%"
-                          outerRadius={80}
-                          dataKey="balance"
-                          label={({ type, balance }) => `${type}: ${formatCurrency(balance)}`}
-                        >
-                          {accountTypeData.map((entry, index) => (
-                            <Cell key={`cell-${index}`} fill={entry.fill} />
-                          ))}
-                        </Pie>
-                        <Tooltip formatter={(value: number) => formatCurrency(value)} />
-                      </RechartsPieChart>
-                    </ResponsiveContainer>
+                  <div className="h-96">
+                    <DonutChart 
+                      data={donutChartData}
+                      centerText={{
+                        title: "Solde total",
+                        value: formatCurrency(getTotalBalance())
+                      }}
+                    />
                   </div>
                 </CardContent>
               </Card>
