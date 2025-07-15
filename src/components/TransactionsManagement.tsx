@@ -7,6 +7,7 @@ import { BankStatementImport } from './BankStatementImport';
 import { AutoCategorizationRules } from './AutoCategorizationRules';
 import { TransactionForm } from './TransactionForm';
 import { TransactionTable } from './TransactionTable';
+import { CategoryManagement } from './CategoryManagement';
 
 export function TransactionsManagement() {
   const { 
@@ -99,6 +100,12 @@ export function TransactionsManagement() {
           onApplyCategorization={handleApplyCategorization}
         />
       )}
+      
+      {/* Gestion des catégories */}
+      <CategoryManagement 
+        categories={categories}
+        onCategoryCreated={fetchCategories}
+      />
       
       {/* Configuration des règles de catégorisation automatique */}
       <AutoCategorizationRules 
