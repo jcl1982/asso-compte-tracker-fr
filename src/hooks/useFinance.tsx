@@ -429,6 +429,7 @@ export function useFinance() {
     deleteTransaction,
     fetchAccounts,
     fetchTransactions,
+    fetchCategories, // Exposer fetchCategories pour permettre le rafraîchissement
     getTotalBalance,
     getBalanceByType,
     applyCategorization

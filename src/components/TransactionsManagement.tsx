@@ -17,7 +17,8 @@ export function TransactionsManagement() {
     updateTransaction, 
     deleteTransaction, 
     loading, 
-    applyCategorization 
+    applyCategorization,
+    fetchCategories
   } = useFinance();
 
   const handleCreateTransaction = async (transactionData: Parameters<typeof createTransaction>[0]) => {
@@ -102,6 +103,7 @@ export function TransactionsManagement() {
       {/* Configuration des règles de catégorisation automatique */}
       <AutoCategorizationRules 
         categories={categories}
+        fetchCategories={fetchCategories}
         onRulesUpdate={() => {
           // Optionnel: rafraîchir les données si nécessaire
         }}

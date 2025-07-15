@@ -27,9 +27,10 @@ interface CategorizationRule {
 interface AutoCategorizationRulesProps {
   categories: Category[];
   onRulesUpdate?: () => void;
+  fetchCategories?: () => void;
 }
 
-export function AutoCategorizationRules({ categories, onRulesUpdate }: AutoCategorizationRulesProps) {
+export function AutoCategorizationRules({ categories, onRulesUpdate, fetchCategories }: AutoCategorizationRulesProps) {
   const [rules, setRules] = useState<CategorizationRule[]>([]);
   const [showCreateDialog, setShowCreateDialog] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -147,6 +148,13 @@ export function AutoCategorizationRules({ categories, onRulesUpdate }: AutoCateg
   useEffect(() => {
     fetchRules();
   }, [user]);
+
+  // Rafraîchir les catégories quand le dialogue s'ouvre
+  useEffect(() => {
+    if (showCreateDialog && fetchCategories) {
+      fetchCategories();
+    }
+  }, [showCreateDialog, fetchCategories]);
 
   const filteredCategories = categories.filter(cat => cat.type === newRule.transaction_type);
 
