@@ -147,8 +147,8 @@ export default function Reports() {
     }));
   }, [getBalanceByType]);
 
-  // Données pour le donut chart des catégories
-  const categoryDonutData = useMemo(() => {
+  // Données pour le donut chart des dépenses par catégories
+  const expenseDonutData = useMemo(() => {
     const expenseCategories = filteredTransactions
       .filter(t => t.type === 'expense')
       .reduce((acc, transaction) => {
@@ -162,6 +162,26 @@ export default function Reports() {
         name,
         value,
         color: COLORS[index % COLORS.length]
+      }))
+      .sort((a, b) => b.value - a.value)
+      .slice(0, 6); // Top 6 categories
+  }, [filteredTransactions]);
+
+  // Données pour le donut chart des recettes par catégories
+  const incomeDonutData = useMemo(() => {
+    const incomeCategories = filteredTransactions
+      .filter(t => t.type === 'income')
+      .reduce((acc, transaction) => {
+        const categoryName = transaction.categories?.name || 'Non catégorisé';
+        acc[categoryName] = (acc[categoryName] || 0) + Number(transaction.amount);
+        return acc;
+      }, {} as Record<string, number>);
+
+    return Object.entries(incomeCategories)
+      .map(([name, value], index) => ({
+        name,
+        value,
+        color: COLORS[(index + 3) % COLORS.length] // Décalage pour différencier les couleurs
       }))
       .sort((a, b) => b.value - a.value)
       .slice(0, 6); // Top 6 categories
@@ -320,46 +340,107 @@ export default function Reports() {
           </TabsContent>
 
           <TabsContent value="categories" className="space-y-6">
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <PieChart className="h-5 w-5" />
-                    Répartition des dépenses par catégories
+            {/* Titre principal */}
+            <div className="text-center mb-8">
+              <h2 className="text-2xl font-bold mb-2">Analyse par catégories - {selectedPeriod} derniers jours</h2>
+              <p className="text-muted-foreground">Répartition détaillée des recettes et dépenses</p>
+            </div>
+
+            {/* Graphiques Recettes et Dépenses côte à côte */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+              {/* Graphique des Recettes */}
+              <Card className="shadow-lg">
+                <CardHeader className="bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-950 dark:to-emerald-950">
+                  <CardTitle className="flex items-center gap-2 text-green-700 dark:text-green-300">
+                    <TrendingUp className="h-5 w-5" />
+                    Recettes {new Date().getFullYear()}
                   </CardTitle>
                 </CardHeader>
-                <CardContent>
-                  <div className="h-96">
+                <CardContent className="pt-6">
+                  <div className="h-80">
                     <DonutChart 
-                      data={categoryDonutData}
+                      data={incomeDonutData}
                       centerText={{
-                        title: "Total dépenses",
-                        value: formatCurrency(stats.totalExpenses)
+                        title: "Total Recettes",
+                        value: formatCurrency(stats.totalIncome)
                       }}
                     />
                   </div>
                 </CardContent>
               </Card>
 
+              {/* Graphique des Dépenses */}
+              <Card className="shadow-lg">
+                <CardHeader className="bg-gradient-to-r from-red-50 to-orange-50 dark:from-red-950 dark:to-orange-950">
+                  <CardTitle className="flex items-center gap-2 text-red-700 dark:text-red-300">
+                    <TrendingDown className="h-5 w-5" />
+                    Dépenses {new Date().getFullYear()}
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="pt-6">
+                  <div className="h-80">
+                    <DonutChart 
+                      data={expenseDonutData}
+                      centerText={{
+                        title: "Total Dépenses",
+                        value: formatCurrency(stats.totalExpenses)
+                      }}
+                    />
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+
+            {/* Tableaux détaillés */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              {/* Détail des recettes */}
               <Card>
                 <CardHeader>
-                  <CardTitle>Top des catégories</CardTitle>
+                  <CardTitle className="text-green-700 dark:text-green-300">Détail des recettes par catégorie</CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <div className="space-y-4">
-                    {categoryData.slice(0, 6).map((category, index) => (
-                      <div key={category.name} className="flex items-center justify-between">
+                  <div className="space-y-3">
+                    {incomeDonutData.map((category, index) => (
+                      <div key={category.name} className="flex items-center justify-between p-2 rounded-lg hover:bg-muted/50">
                         <div className="flex items-center gap-3">
                           <div 
-                            className="w-3 h-3 rounded-full" 
-                            style={{ backgroundColor: COLORS[index % COLORS.length] }}
+                            className="w-4 h-4 rounded-full shadow-sm" 
+                            style={{ backgroundColor: category.color }}
                           />
                           <span className="font-medium">{category.name}</span>
                         </div>
                         <div className="text-right">
-                          <div className="font-bold">{formatCurrency(category.total)}</div>
+                          <div className="font-bold text-green-600">{formatCurrency(category.value)}</div>
                           <div className="text-sm text-muted-foreground">
-                            {((category.total / stats.totalIncome + stats.totalExpenses) * 100).toFixed(1)}%
+                            {stats.totalIncome > 0 ? ((category.value / stats.totalIncome) * 100).toFixed(1) : 0}%
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Détail des dépenses */}
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-red-700 dark:text-red-300">Détail des dépenses par catégorie</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-3">
+                    {expenseDonutData.map((category, index) => (
+                      <div key={category.name} className="flex items-center justify-between p-2 rounded-lg hover:bg-muted/50">
+                        <div className="flex items-center gap-3">
+                          <div 
+                            className="w-4 h-4 rounded-full shadow-sm" 
+                            style={{ backgroundColor: category.color }}
+                          />
+                          <span className="font-medium">{category.name}</span>
+                        </div>
+                        <div className="text-right">
+                          <div className="font-bold text-red-600">{formatCurrency(category.value)}</div>
+                          <div className="text-sm text-muted-foreground">
+                            {stats.totalExpenses > 0 ? ((category.value / stats.totalExpenses) * 100).toFixed(1) : 0}%
                           </div>
                         </div>
                       </div>
