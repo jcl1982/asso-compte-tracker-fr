@@ -11,9 +11,9 @@ interface TransactionTableProps {
   transactions: Transaction[];
   categories: Category[];
   loading: boolean;
-  onDeleteTransaction: (transactionId: string) => Promise<void>;
-  onUpdateTransaction: (transactionId: string, updates: Partial<Transaction>) => Promise<void>;
-  onApplyCategorization: () => Promise<number>;
+  onDeleteTransaction?: (transactionId: string) => Promise<void>;
+  onUpdateTransaction?: (transactionId: string, updates: Partial<Transaction>) => Promise<void>;
+  onApplyCategorization?: () => Promise<number>;
 }
 
 export function TransactionTable({ 
@@ -56,6 +56,8 @@ export function TransactionTable({
   };
 
   const handleCategoryChange = async (transactionId: string, categoryId: string, transactionType: Transaction['type']) => {
+    if (!onUpdateTransaction) return; // Pas d'action si pas de permissions
+    
     const validCategories = categories.filter(cat => cat.type === transactionType);
     const selectedCategory = validCategories.find(cat => cat.id === categoryId);
     
@@ -90,15 +92,17 @@ export function TransactionTable({
                 ))}
               </SelectContent>
             </Select>
-            <Button 
-              variant="outline" 
-              size="sm"
-              onClick={onApplyCategorization}
-              disabled={loading}
-            >
-              <Zap className="h-4 w-4 mr-2" />
-              Auto-catégoriser
-            </Button>
+            {onApplyCategorization && (
+              <Button 
+                variant="outline" 
+                size="sm"
+                onClick={onApplyCategorization}
+                disabled={loading}
+              >
+                <Zap className="h-4 w-4 mr-2" />
+                Auto-catégoriser
+              </Button>
+            )}
           </div>
         </div>
       </CardHeader>
@@ -112,7 +116,7 @@ export function TransactionTable({
               <TableHead>Catégorie</TableHead>
               <TableHead>Description</TableHead>
               <TableHead className="text-right">Montant</TableHead>
-              <TableHead></TableHead>
+              {onDeleteTransaction && <TableHead></TableHead>}
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -132,26 +136,32 @@ export function TransactionTable({
                   </Badge>
                 </TableCell>
                 <TableCell>
-                  <Select
-                    value={transaction.category_id || 'none'}
-                    onValueChange={(value) => handleCategoryChange(transaction.id, value, transaction.type)}
-                  >
-                    <SelectTrigger className="w-full max-w-[200px]">
-                      <SelectValue placeholder="Sélectionner une catégorie" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="none">
-                        <span className="text-muted-foreground">Aucune catégorie</span>
-                      </SelectItem>
-                      {categories
-                        .filter(cat => cat.type === transaction.type)
-                        .map((category) => (
-                          <SelectItem key={category.id} value={category.id}>
-                            {category.name}
-                          </SelectItem>
-                        ))}
-                    </SelectContent>
-                  </Select>
+                  {onUpdateTransaction ? (
+                    <Select
+                      value={transaction.category_id || 'none'}
+                      onValueChange={(value) => handleCategoryChange(transaction.id, value, transaction.type)}
+                    >
+                      <SelectTrigger className="w-full max-w-[200px]">
+                        <SelectValue placeholder="Sélectionner une catégorie" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="none">
+                          <span className="text-muted-foreground">Aucune catégorie</span>
+                        </SelectItem>
+                        {categories
+                          .filter(cat => cat.type === transaction.type)
+                          .map((category) => (
+                            <SelectItem key={category.id} value={category.id}>
+                              {category.name}
+                            </SelectItem>
+                          ))}
+                      </SelectContent>
+                    </Select>
+                  ) : (
+                    <span className="text-sm">
+                      {transaction.categories?.name || 'Aucune catégorie'}
+                    </span>
+                  )}
                 </TableCell>
                 <TableCell className="max-w-xs truncate">
                   {transaction.description || '-'}
@@ -159,16 +169,18 @@ export function TransactionTable({
                 <TableCell className={`text-right font-medium ${getAmountColor(transaction.type)}`}>
                   {formatAmount(Number(transaction.amount), transaction.type)}
                 </TableCell>
-                <TableCell>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => onDeleteTransaction(transaction.id)}
-                    className="text-red-600 hover:text-red-700 hover:bg-red-50"
-                  >
-                    <Trash2 className="h-4 w-4" />
-                  </Button>
-                </TableCell>
+                {onDeleteTransaction && (
+                  <TableCell>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => onDeleteTransaction(transaction.id)}
+                      className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  </TableCell>
+                )}
               </TableRow>
             ))}
           </TableBody>

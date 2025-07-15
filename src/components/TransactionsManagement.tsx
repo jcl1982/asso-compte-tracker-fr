@@ -41,43 +41,39 @@ export function TransactionsManagement() {
     return await applyCategorization();
   };
 
-  // Si l'utilisateur n'est pas admin, afficher un message d'accès refusé
-  if (!isAdmin) {
-    return (
-      <Card className="max-w-md mx-auto">
-        <CardContent className="flex flex-col items-center justify-center py-12">
-          <div className="bg-destructive/10 p-3 rounded-full w-fit mx-auto mb-4">
-            <Shield className="h-8 w-8 text-destructive" />
-          </div>
-          <h3 className="text-lg font-semibold text-destructive mb-2">Accès refusé</h3>
-          <p className="text-muted-foreground text-center">
-            Seuls les administrateurs peuvent saisir et gérer les transactions.
-          </p>
-        </CardContent>
-      </Card>
-    );
-  }
-
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
           <h2 className="text-2xl font-bold">Gestion des Transactions</h2>
           <p className="text-muted-foreground">
-            Enregistrez et suivez toutes vos recettes et dépenses
+            {isAdmin ? "Enregistrez et suivez toutes vos recettes et dépenses" : "Consultez les transactions enregistrées"}
           </p>
         </div>
         
-        <div className="flex gap-2">
-          <BankStatementImport />
-          <TransactionForm
-            accounts={accounts}
-            categories={categories}
-            loading={loading}
-            onCreateTransaction={handleCreateTransaction}
-          />
-        </div>
+        {isAdmin && (
+          <div className="flex gap-2">
+            <BankStatementImport />
+            <TransactionForm
+              accounts={accounts}
+              categories={categories}
+              loading={loading}
+              onCreateTransaction={handleCreateTransaction}
+            />
+          </div>
+        )}
       </div>
+
+      {!isAdmin && (
+        <Card className="border-amber-200 bg-amber-50 dark:border-amber-800 dark:bg-amber-950">
+          <CardContent className="flex items-center gap-3 p-4">
+            <Shield className="h-5 w-5 text-amber-600" />
+            <p className="text-amber-800 dark:text-amber-200">
+              Vous consultez les transactions en mode lecture seule. Seuls les administrateurs peuvent saisir de nouvelles transactions.
+            </p>
+          </CardContent>
+        </Card>
+      )}
 
       {loading ? (
         <Card>
@@ -100,14 +96,16 @@ export function TransactionsManagement() {
             <Calendar className="h-12 w-12 text-muted-foreground mb-4" />
             <h3 className="text-lg font-semibold mb-2">Aucune transaction enregistrée</h3>
             <p className="text-muted-foreground text-center mb-4">
-              Commencez par enregistrer votre première transaction
+              {isAdmin ? "Commencez par enregistrer votre première transaction" : "Aucune transaction disponible pour le moment"}
             </p>
-            <TransactionForm
-              accounts={accounts}
-              categories={categories}
-              loading={loading}
-              onCreateTransaction={handleCreateTransaction}
-            />
+            {isAdmin && (
+              <TransactionForm
+                accounts={accounts}
+                categories={categories}
+                loading={loading}
+                onCreateTransaction={handleCreateTransaction}
+              />
+            )}
           </CardContent>
         </Card>
       ) : (
@@ -115,26 +113,29 @@ export function TransactionsManagement() {
           transactions={transactions}
           categories={categories}
           loading={loading}
-          onDeleteTransaction={handleDeleteTransaction}
-          onUpdateTransaction={handleUpdateTransaction}
-          onApplyCategorization={handleApplyCategorization}
+          onDeleteTransaction={isAdmin ? handleDeleteTransaction : undefined}
+          onUpdateTransaction={isAdmin ? handleUpdateTransaction : undefined}
+          onApplyCategorization={isAdmin ? handleApplyCategorization : undefined}
         />
       )}
       
-      {/* Gestion des catégories */}
-      <CategoryManagement 
-        categories={categories}
-        onCategoryCreated={fetchCategories}
-      />
-      
-      {/* Configuration des règles de catégorisation automatique */}
-      <AutoCategorizationRules 
-        categories={categories}
-        fetchCategories={fetchCategories}
-        onRulesUpdate={() => {
-          // Optionnel: rafraîchir les données si nécessaire
-        }}
-      />
+      {/* Gestion des catégories - Seulement pour les admins */}
+      {isAdmin && (
+        <>
+          <CategoryManagement 
+            categories={categories}
+            onCategoryCreated={fetchCategories}
+          />
+          
+          <AutoCategorizationRules 
+            categories={categories}
+            fetchCategories={fetchCategories}
+            onRulesUpdate={() => {
+              // Optionnel: rafraîchir les données si nécessaire
+            }}
+          />
+        </>
+      )}
     </div>
   );
 }
