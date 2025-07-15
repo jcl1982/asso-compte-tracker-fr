@@ -1,10 +1,10 @@
-import React from 'react';
+import React, { useState, useMemo } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Trash2, Calendar, TrendingUp, TrendingDown, Zap } from 'lucide-react';
+import { Trash2, Calendar, TrendingUp, TrendingDown, Zap, Filter } from 'lucide-react';
 import { Transaction, Category } from '@/hooks/useFinance';
 
 interface TransactionTableProps {
@@ -24,6 +24,18 @@ export function TransactionTable({
   onUpdateTransaction, 
   onApplyCategorization 
 }: TransactionTableProps) {
+  const [categoryFilter, setCategoryFilter] = useState<string>('all');
+
+  const filteredTransactions = useMemo(() => {
+    if (categoryFilter === 'all') {
+      return transactions;
+    } else if (categoryFilter === 'none') {
+      return transactions.filter(t => !t.category_id);
+    } else {
+      return transactions.filter(t => t.category_id === categoryFilter);
+    }
+  }, [transactions, categoryFilter]);
+
   const formatAmount = (amount: number, type: Transaction['type']) => {
     const formattedAmount = new Intl.NumberFormat('fr-FR', {
       style: 'currency',
@@ -56,15 +68,32 @@ export function TransactionTable({
             <Calendar className="h-5 w-5" />
             Historique des transactions
           </CardTitle>
-          <Button 
-            variant="outline" 
-            size="sm"
-            onClick={onApplyCategorization}
-            disabled={loading}
-          >
-            <Zap className="h-4 w-4 mr-2" />
-            Auto-catégoriser
-          </Button>
+          <div className="flex items-center gap-2">
+            <Select value={categoryFilter} onValueChange={setCategoryFilter}>
+              <SelectTrigger className="w-[200px]">
+                <Filter className="h-4 w-4 mr-2" />
+                <SelectValue placeholder="Filtrer par catégorie" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Toutes les catégories</SelectItem>
+                <SelectItem value="none">Sans catégorie</SelectItem>
+                {categories.map((category) => (
+                  <SelectItem key={category.id} value={category.id}>
+                    {category.name} ({category.type === 'income' ? 'Recette' : 'Dépense'})
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <Button 
+              variant="outline" 
+              size="sm"
+              onClick={onApplyCategorization}
+              disabled={loading}
+            >
+              <Zap className="h-4 w-4 mr-2" />
+              Auto-catégoriser
+            </Button>
+          </div>
         </div>
       </CardHeader>
       <CardContent>
@@ -81,7 +110,7 @@ export function TransactionTable({
             </TableRow>
           </TableHeader>
           <TableBody>
-            {transactions.map((transaction) => (
+            {filteredTransactions.map((transaction) => (
               <TableRow key={transaction.id}>
                 <TableCell>
                   {new Date(transaction.transaction_date).toLocaleDateString('fr-FR')}
