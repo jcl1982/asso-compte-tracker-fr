@@ -317,104 +317,148 @@ export default function Reports() {
             </Card>
           </TabsContent>
 
-          <TabsContent value="categories" className="space-y-6">
-            {/* Titre principal */}
-            <div className="text-center mb-8">
-              <h2 className="text-2xl font-bold mb-2">Analyse par catégories - {selectedPeriod} derniers jours</h2>
-              <p className="text-muted-foreground">Répartition détaillée des recettes et dépenses</p>
+          <TabsContent value="categories" className="space-y-8">
+            {/* Header avec statistiques */}
+            <div className="text-center space-y-4">
+              <h2 className="text-3xl font-bold bg-gradient-to-r from-primary to-primary/60 bg-clip-text text-transparent">
+                Analyse par catégories {new Date().getFullYear()}
+              </h2>
+              <div className="flex justify-center gap-8 text-sm">
+                <div className="flex items-center gap-2">
+                  <div className="w-3 h-3 rounded-full bg-green-500"></div>
+                  <span className="text-muted-foreground">Recettes: </span>
+                  <span className="font-semibold text-green-600">{formatCurrency(stats.totalIncome)}</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <div className="w-3 h-3 rounded-full bg-red-500"></div>
+                  <span className="text-muted-foreground">Dépenses: </span>
+                  <span className="font-semibold text-red-600">{formatCurrency(stats.totalExpenses)}</span>
+                </div>
+              </div>
             </div>
 
-            {/* Graphiques Recettes et Dépenses côte à côte */}
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+            {/* Graphiques principaux */}
+            <div className="grid grid-cols-1 xl:grid-cols-2 gap-8">
               {/* Graphique des Recettes */}
-              <Card className="shadow-lg">
-                <CardHeader className="bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-950 dark:to-emerald-950">
-                  <CardTitle className="flex items-center gap-2 text-green-700 dark:text-green-300">
-                    <TrendingUp className="h-5 w-5" />
+              <Card className="border-green-100 shadow-lg hover:shadow-xl transition-shadow">
+                <CardHeader className="text-center pb-4 bg-gradient-to-br from-green-50 via-emerald-50 to-green-50 dark:from-green-950/50 dark:via-emerald-950/50 dark:to-green-950/50 rounded-t-lg">
+                  <CardTitle className="flex items-center justify-center gap-2 text-2xl text-green-700 dark:text-green-300">
+                    <TrendingUp className="h-6 w-6" />
                     Recettes {new Date().getFullYear()}
                   </CardTitle>
                 </CardHeader>
-                <CardContent className="pt-6">
-                  <div className="h-80">
-                    <DonutChart data={incomeDonutData} centerText={{
-                    title: "Total Recettes",
-                    value: formatCurrency(stats.totalIncome)
-                  }} />
+                <CardContent className="p-6">
+                  <div className="relative">
+                    <div className="h-80 mb-6">
+                      <DonutChart 
+                        data={incomeDonutData} 
+                        centerText={{
+                          title: "Total Recettes",
+                          value: formatCurrency(stats.totalIncome)
+                        }} 
+                      />
+                    </div>
+                    
+                    {/* Légende responsive pour les recettes */}
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 mt-4">
+                      {incomeDonutData.map((category, index) => (
+                        <div key={category.name} className="flex items-center justify-between p-2 bg-green-50/50 dark:bg-green-950/20 rounded-lg hover:bg-green-100/50 dark:hover:bg-green-950/30 transition-colors">
+                          <div className="flex items-center gap-2 min-w-0">
+                            <div 
+                              className="w-3 h-3 rounded-full flex-shrink-0 border border-white shadow-sm" 
+                              style={{ backgroundColor: category.color }}
+                            />
+                            <span className="text-sm font-medium truncate">{category.name}</span>
+                          </div>
+                          <div className="text-right flex-shrink-0 ml-2">
+                            <div className="font-bold text-green-600 text-sm">{formatCurrency(category.value)}</div>
+                            <div className="text-xs text-muted-foreground">
+                              {stats.totalIncome > 0 ? (category.value / stats.totalIncome * 100).toFixed(1) : 0}%
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
                   </div>
                 </CardContent>
               </Card>
 
               {/* Graphique des Dépenses */}
-              <Card className="shadow-lg">
-                <CardHeader className="bg-gradient-to-r from-red-50 to-orange-50 dark:from-red-950 dark:to-orange-950">
-                  <CardTitle className="flex items-center gap-2 text-red-700 dark:text-red-300">
-                    <TrendingDown className="h-5 w-5" />
+              <Card className="border-red-100 shadow-lg hover:shadow-xl transition-shadow">
+                <CardHeader className="text-center pb-4 bg-gradient-to-br from-red-50 via-orange-50 to-red-50 dark:from-red-950/50 dark:via-orange-950/50 dark:to-red-950/50 rounded-t-lg">
+                  <CardTitle className="flex items-center justify-center gap-2 text-2xl text-red-700 dark:text-red-300">
+                    <TrendingDown className="h-6 w-6" />
                     Dépenses {new Date().getFullYear()}
                   </CardTitle>
                 </CardHeader>
-                <CardContent className="pt-6">
-                  <div className="h-80">
-                    <DonutChart data={expenseDonutData} centerText={{
-                    title: "Total Dépenses",
-                    value: formatCurrency(stats.totalExpenses)
-                  }} />
+                <CardContent className="p-6">
+                  <div className="relative">
+                    <div className="h-80 mb-6">
+                      <DonutChart 
+                        data={expenseDonutData} 
+                        centerText={{
+                          title: "Total Dépenses",
+                          value: formatCurrency(stats.totalExpenses)
+                        }} 
+                      />
+                    </div>
+                    
+                    {/* Légende responsive pour les dépenses */}
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 mt-4">
+                      {expenseDonutData.map((category, index) => (
+                        <div key={category.name} className="flex items-center justify-between p-2 bg-red-50/50 dark:bg-red-950/20 rounded-lg hover:bg-red-100/50 dark:hover:bg-red-950/30 transition-colors">
+                          <div className="flex items-center gap-2 min-w-0">
+                            <div 
+                              className="w-3 h-3 rounded-full flex-shrink-0 border border-white shadow-sm" 
+                              style={{ backgroundColor: category.color }}
+                            />
+                            <span className="text-sm font-medium truncate">{category.name}</span>
+                          </div>
+                          <div className="text-right flex-shrink-0 ml-2">
+                            <div className="font-bold text-red-600 text-sm">{formatCurrency(category.value)}</div>
+                            <div className="text-xs text-muted-foreground">
+                              {stats.totalExpenses > 0 ? (category.value / stats.totalExpenses * 100).toFixed(1) : 0}%
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
                   </div>
                 </CardContent>
               </Card>
             </div>
 
-            {/* Tableaux détaillés */}
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              {/* Détail des recettes */}
-              <Card>
-                <CardHeader>
-                  <CardTitle className="text-green-700 dark:text-green-300">Détail des recettes par catégorie</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-0">
-                    {incomeDonutData.map((category, index) => <div key={category.name} className="flex items-center justify-between p-1 hover:bg-muted/50 rounded-md">
-                        <div className="flex items-center gap-3">
-                          <div className="w-4 h-4 rounded-full shadow-sm" style={{
-                        backgroundColor: category.color
-                      }} />
-                          <span className="font-medium">{category.name}</span>
-                        </div>
-                        <div className="text-right">
-                          <div className="font-bold text-green-600">{formatCurrency(category.value)}</div>
-                          <div className="text-sm text-muted-foreground">
-                            {stats.totalIncome > 0 ? (category.value / stats.totalIncome * 100).toFixed(1) : 0}%
-                          </div>
-                        </div>
-                      </div>)}
+            {/* Résumé comparatif */}
+            <Card className="bg-gradient-to-r from-background to-muted/20">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2 text-center justify-center">
+                  <PieChart className="h-5 w-5" />
+                  Résumé de la période
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6 text-center">
+                  <div className="space-y-2">
+                    <p className="text-sm text-muted-foreground">Solde net</p>
+                    <p className={`text-2xl font-bold ${stats.balance >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                      {formatCurrency(stats.balance)}
+                    </p>
                   </div>
-                </CardContent>
-              </Card>
-
-              {/* Détail des dépenses */}
-              <Card>
-                <CardHeader>
-                  <CardTitle className="text-red-700 dark:text-red-300">Détail des dépenses par catégorie</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-0">
-                    {expenseDonutData.map((category, index) => <div key={category.name} className="flex items-center justify-between p-1 hover:bg-muted/50 rounded-md">
-                        <div className="flex items-center gap-3">
-                          <div className="w-4 h-4 rounded-full shadow-sm" style={{
-                        backgroundColor: category.color
-                      }} />
-                          <span className="font-medium">{category.name}</span>
-                        </div>
-                        <div className="text-right">
-                          <div className="font-bold text-red-600">{formatCurrency(category.value)}</div>
-                          <div className="text-sm text-muted-foreground">
-                            {stats.totalExpenses > 0 ? (category.value / stats.totalExpenses * 100).toFixed(1) : 0}%
-                          </div>
-                        </div>
-                      </div>)}
+                  <div className="space-y-2">
+                    <p className="text-sm text-muted-foreground">Taux d'épargne</p>
+                    <p className="text-2xl font-bold text-primary">
+                      {stats.totalIncome > 0 ? ((stats.balance / stats.totalIncome) * 100).toFixed(1) : 0}%
+                    </p>
                   </div>
-                </CardContent>
-              </Card>
-            </div>
+                  <div className="space-y-2">
+                    <p className="text-sm text-muted-foreground">Nombre de catégories</p>
+                    <p className="text-2xl font-bold text-muted-foreground">
+                      {incomeDonutData.length + expenseDonutData.length}
+                    </p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
           </TabsContent>
 
           <TabsContent value="accounts" className="space-y-6">
