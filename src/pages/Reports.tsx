@@ -371,8 +371,8 @@ export default function Reports() {
                   <CardTitle className="text-green-700 dark:text-green-300">Détail des recettes par catégorie</CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <div className="space-y-3">
-                    {incomeDonutData.map((category, index) => <div key={category.name} className="flex items-center justify-between p-2 hover:bg-muted/50 rounded-md">
+                  <div className="space-y-1">
+                    {incomeDonutData.map((category, index) => <div key={category.name} className="flex items-center justify-between p-1 hover:bg-muted/50 rounded-md">
                         <div className="flex items-center gap-3">
                           <div className="w-4 h-4 rounded-full shadow-sm" style={{
                         backgroundColor: category.color
@@ -396,8 +396,8 @@ export default function Reports() {
                   <CardTitle className="text-red-700 dark:text-red-300">Détail des dépenses par catégorie</CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <div className="space-y-3">
-                    {expenseDonutData.map((category, index) => <div key={category.name} className="flex items-center justify-between p-2 rounded-lg hover:bg-muted/50">
+                  <div className="space-y-1">
+                    {expenseDonutData.map((category, index) => <div key={category.name} className="flex items-center justify-between p-1 hover:bg-muted/50 rounded-md">
                         <div className="flex items-center gap-3">
                           <div className="w-4 h-4 rounded-full shadow-sm" style={{
                         backgroundColor: category.color
