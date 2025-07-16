@@ -90,7 +90,7 @@ export function useFinance() {
           categories(name)
         `)
         .order('transaction_date', { ascending: false })
-        .limit(100);
+        .limit(1000);
 
       if (error) throw error;
       setTransactions((data || []) as Transaction[]);
