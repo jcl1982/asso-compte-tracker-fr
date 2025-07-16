@@ -47,35 +47,49 @@ export function DonutChart({
   data,
   centerText
 }: DonutChartProps) {
-  return <div className="relative w-full h-full">
-      <ResponsiveContainer width="100%" height="100%">
-        <PieChart>
-          <Pie data={data} cx="50%" cy="50%" labelLine={false} label={renderCustomizedLabel} outerRadius={120} innerRadius={60} fill="#8884d8" dataKey="value" strokeWidth={2} stroke="hsl(var(--background))">
-            {data.map((entry, index) => <Cell key={`cell-${index}`} fill={entry.color} />)}
-          </Pie>
-          <Tooltip formatter={(value: number, name: string) => [new Intl.NumberFormat('fr-FR', {
-          style: 'currency',
-          currency: 'EUR'
-        }).format(value), name]} contentStyle={{
-          backgroundColor: 'hsl(var(--background))',
-          border: '1px solid hsl(var(--border))',
-          borderRadius: '8px',
-          boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)'
-        }} />
-          {centerText && renderCenterLabel(centerText)}
-        </PieChart>
-      </ResponsiveContainer>
-      
-      {/* Legend */}
-      <div className="absolute bottom-0 left-0 right-0 flex flex-wrap justify-center gap-3 p-2 py-[6px]">
-        {data.map((entry, index) => <div key={entry.name} className="flex items-center gap-2">
-            <div className="w-3 h-3 rounded-full" style={{
-          backgroundColor: entry.color
-        }} />
-            <span className="text-sm font-medium text-muted-foreground">
-              {entry.name}
-            </span>
-          </div>)}
+  return (
+    <div className="w-full h-full flex flex-col">
+      {/* Graphique principal */}
+      <div className="flex-1 relative min-h-0">
+        <ResponsiveContainer width="100%" height="100%">
+          <PieChart>
+            <Pie 
+              data={data} 
+              cx="50%" 
+              cy="50%" 
+              labelLine={false} 
+              label={renderCustomizedLabel} 
+              outerRadius={100} 
+              innerRadius={50} 
+              fill="#8884d8" 
+              dataKey="value" 
+              strokeWidth={2} 
+              stroke="hsl(var(--background))"
+            >
+              {data.map((entry, index) => (
+                <Cell key={`cell-${index}`} fill={entry.color} />
+              ))}
+            </Pie>
+            <Tooltip 
+              formatter={(value: number, name: string) => [
+                new Intl.NumberFormat('fr-FR', {
+                  style: 'currency',
+                  currency: 'EUR'
+                }).format(value), 
+                name
+              ]} 
+              contentStyle={{
+                backgroundColor: 'hsl(var(--background))',
+                border: '1px solid hsl(var(--border))',
+                borderRadius: '8px',
+                boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)',
+                zIndex: 50
+              }} 
+            />
+            {centerText && renderCenterLabel(centerText)}
+          </PieChart>
+        </ResponsiveContainer>
       </div>
-    </div>;
+    </div>
+  );
 }
