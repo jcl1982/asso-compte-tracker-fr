@@ -22,7 +22,7 @@ export default function Reports() {
     getTotalBalance,
     getBalanceByType
   } = useFinance();
-  const [selectedPeriod, setSelectedPeriod] = useState('30'); // derniers 30 jours par défaut
+  const [selectedPeriod, setSelectedPeriod] = useState('365'); // année complète par défaut
 
   // Filtrer les transactions par période
   const filteredTransactions = useMemo(() => {
