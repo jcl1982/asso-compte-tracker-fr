@@ -148,7 +148,7 @@ export default function Reports() {
       name,
       value,
       color: COLORS[index % COLORS.length]
-    })).sort((a, b) => b.value - a.value).slice(0, 6); // Top 6 categories
+    })).sort((a, b) => b.value - a.value); // Toutes les catégories
   }, [filteredTransactions]);
 
   // Données pour le donut chart des recettes par catégories
@@ -162,7 +162,7 @@ export default function Reports() {
       name,
       value,
       color: COLORS[(index + 3) % COLORS.length] // Décalage pour différencier les couleurs
-    })).sort((a, b) => b.value - a.value).slice(0, 6); // Top 6 categories
+    })).sort((a, b) => b.value - a.value); // Toutes les catégories
   }, [filteredTransactions]);
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('fr-FR', {
