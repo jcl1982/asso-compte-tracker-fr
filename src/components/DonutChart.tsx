@@ -59,8 +59,8 @@ export function DonutChart({
               cy="50%" 
               labelLine={false} 
               label={renderCustomizedLabel} 
-              outerRadius={100} 
-              innerRadius={50} 
+              outerRadius={140} 
+              innerRadius={70} 
               fill="#8884d8" 
               dataKey="value" 
               strokeWidth={2} 
