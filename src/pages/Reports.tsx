@@ -6,7 +6,7 @@ import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useAuth } from '@/hooks/useAuth';
 import { useFinance } from '@/hooks/useFinance';
-import { ArrowLeft, TrendingUp, TrendingDown, PieChart, BarChart3, Calendar, DollarSign, Target, Activity } from 'lucide-react';
+import { ArrowLeft, TrendingUp, TrendingDown, PieChart, BarChart3, Calendar, DollarSign, Target, Activity, Printer } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar, PieChart as RechartsPieChart, Pie, Cell } from 'recharts';
 import { DonutChart } from '@/components/DonutChart';
@@ -170,6 +170,10 @@ export default function Reports() {
       currency: 'EUR'
     }).format(amount);
   };
+
+  const handlePrint = () => {
+    window.print();
+  };
   if (!user) {
     return null;
   }
@@ -190,9 +194,18 @@ export default function Reports() {
               <p className="text-sm text-muted-foreground">Rapports & Analyses</p>
             </div>
           </div>
-          <div className="ml-auto">
+          <div className="ml-auto flex items-center gap-3">
+            <Button 
+              variant="outline" 
+              size="sm" 
+              onClick={handlePrint}
+              className="hidden sm:flex print:hidden"
+            >
+              <Printer className="h-4 w-4 mr-2" />
+              Imprimer
+            </Button>
             <Select value={selectedPeriod} onValueChange={setSelectedPeriod}>
-              <SelectTrigger className="w-40">
+              <SelectTrigger className="w-40 print:hidden">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>

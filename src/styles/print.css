@@ -1,0 +1,90 @@
+/* Styles spécifiques pour l'impression */
+@media print {
+  /* Masquer les éléments non nécessaires à l'impression */
+  .print\\:hidden {
+    display: none !important;
+  }
+
+  /* Optimiser la mise en page pour l'impression */
+  body {
+    -webkit-print-color-adjust: exact !important;
+    color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
+  /* Adapter la page pour l'impression */
+  .min-h-screen {
+    min-height: auto !important;
+  }
+
+  /* Optimiser les graphiques pour l'impression */
+  .recharts-wrapper {
+    width: 100% !important;
+    height: 300px !important;
+  }
+
+  /* Forcer l'affichage des couleurs */
+  .recharts-cartesian-grid line,
+  .recharts-cartesian-axis line,
+  .recharts-cartesian-axis-tick line {
+    stroke: #374151 !important;
+  }
+
+  /* Optimiser les cartes pour l'impression */
+  .card {
+    break-inside: avoid;
+    margin-bottom: 1rem !important;
+  }
+
+  /* Optimiser la grille pour l'impression */
+  .grid {
+    break-inside: avoid;
+  }
+
+  /* Optimiser les onglets pour l'impression */
+  .tabs-list {
+    display: none !important;
+  }
+
+  .tabs-content {
+    margin-top: 0 !important;
+  }
+
+  /* Afficher tous les onglets en impression */
+  .tabs-content[data-state="inactive"] {
+    display: block !important;
+  }
+
+  /* Optimiser les en-têtes */
+  header {
+    break-after: avoid;
+  }
+
+  /* Forcer la couleur des graphiques */
+  .recharts-line,
+  .recharts-area,
+  .recharts-bar {
+    opacity: 1 !important;
+  }
+
+  /* Optimiser les légendes */
+  .legend-item {
+    break-inside: avoid;
+  }
+
+  /* Marges pour l'impression */
+  @page {
+    margin: 1cm;
+    size: A4;
+  }
+
+  /* Éviter les coupures de page inappropriées */
+  h1, h2, h3, h4, h5, h6 {
+    break-after: avoid;
+  }
+
+  /* Optimiser les tableaux et listes */
+  table, ul, ol {
+    break-inside: avoid;
+  }
+}
