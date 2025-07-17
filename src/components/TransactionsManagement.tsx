@@ -112,6 +112,7 @@ export function TransactionsManagement() {
         <TransactionTable
           transactions={transactions}
           categories={categories}
+          accounts={accounts}
           loading={loading}
           onDeleteTransaction={isAdmin ? handleDeleteTransaction : undefined}
           onUpdateTransaction={isAdmin ? handleUpdateTransaction : undefined}

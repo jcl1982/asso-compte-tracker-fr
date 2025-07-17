@@ -5,11 +5,13 @@ import { Badge } from '@/components/ui/badge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Trash2, Calendar, TrendingUp, TrendingDown, Zap, Filter } from 'lucide-react';
-import { Transaction, Category } from '@/hooks/useFinance';
+import { Transaction, Category, Account } from '@/hooks/useFinance';
+import { TransactionEditForm } from './TransactionEditForm';
 
 interface TransactionTableProps {
   transactions: Transaction[];
   categories: Category[];
+  accounts: Account[];
   loading: boolean;
   onDeleteTransaction?: (transactionId: string) => Promise<void>;
   onUpdateTransaction?: (transactionId: string, updates: Partial<Transaction>) => Promise<void>;
@@ -19,6 +21,7 @@ interface TransactionTableProps {
 export function TransactionTable({ 
   transactions, 
   categories, 
+  accounts,
   loading, 
   onDeleteTransaction, 
   onUpdateTransaction, 
@@ -116,7 +119,7 @@ export function TransactionTable({
               <TableHead>Catégorie</TableHead>
               <TableHead>Description</TableHead>
               <TableHead className="text-right">Montant</TableHead>
-              {onDeleteTransaction && <TableHead></TableHead>}
+              {(onDeleteTransaction || onUpdateTransaction) && <TableHead>Actions</TableHead>}
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -169,16 +172,29 @@ export function TransactionTable({
                 <TableCell className={`text-right font-medium ${getAmountColor(transaction.type)}`}>
                   {formatAmount(Number(transaction.amount), transaction.type)}
                 </TableCell>
-                {onDeleteTransaction && (
+                {(onDeleteTransaction || onUpdateTransaction) && (
                   <TableCell>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => onDeleteTransaction(transaction.id)}
-                      className="text-red-600 hover:text-red-700 hover:bg-red-50"
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
+                    <div className="flex gap-1">
+                      {onUpdateTransaction && (
+                        <TransactionEditForm
+                          transaction={transaction}
+                          accounts={accounts}
+                          categories={categories}
+                          loading={loading}
+                          onUpdateTransaction={onUpdateTransaction}
+                        />
+                      )}
+                      {onDeleteTransaction && (
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => onDeleteTransaction(transaction.id)}
+                          className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      )}
+                    </div>
                   </TableCell>
                 )}
               </TableRow>
